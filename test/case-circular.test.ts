@@ -1,4 +1,5 @@
 import { inject, Lifetime, scope } from '../src/index'
+import { expect } from 'vitest'
 
 export const { register, resolve } = scope()
 
@@ -29,7 +30,9 @@ register(Service0, Lifetime.SCOPED)
 
 describe('case circular', () => {
 	it('should fail in loop', () => {
-		const service = resolve(Service0)
-		expect(service.service).toBe(service)
+		expect(() => {
+			const service = resolve(Service0)
+			expect(service.service)
+		}).toThrowError('Circular')
 	})
 })

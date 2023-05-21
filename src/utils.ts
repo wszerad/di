@@ -8,6 +8,7 @@ import {
 	Token,
 	TokenRegister
 } from './types'
+import { UnknownTokenError } from './errors'
 
 export function isFunction(input: any) {
 	return typeof input === 'function'
@@ -73,7 +74,15 @@ export function getFactory<T>(register: Register<T>, type: ProviderType): () => 
 	return () => typeToFactoryMap[type](register)
 }
 
-export function getRegisterName(register: Register<any>) {
-	const type = getRegisterType(register)
-	return getToken(register, type)
+export function getTokenName(token: Token<any>) {
+	switch (typeof token) {
+		case 'string':
+			return token
+		case 'symbol':
+			return token.toString()
+		case 'function':
+			return token.name
+		default:
+			throw new UnknownTokenError()
+	}
 }

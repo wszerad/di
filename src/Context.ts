@@ -15,7 +15,7 @@ export function setCurrContext(context: Context){
 }
 
 export class Context {
-	cache = new Map<Token<any>, any>
+	cache = new Map<Token<any>, any>()
 
 	constructor(
 		public scope: Scope

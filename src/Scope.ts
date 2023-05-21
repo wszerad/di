@@ -1,6 +1,8 @@
 import { Constructor, Lifetime, Register, Token, TokenRegister } from './types'
 import { Registration } from './Registration'
 import { Context } from './Context'
+import { TokenNameError, TokenOverwriteError } from './errors'
+import { getTokenName } from './utils'
 
 export class Scope {
 	private singletonsContext: Context = new Context(this)
@@ -38,6 +40,15 @@ export class Scope {
 
 	register<T>(provider: Register<T>, lifetime: Lifetime = Lifetime.SCOPED): Scope {
 		const registration = new Registration(provider, lifetime)
+
+		if (!registration.token) {
+			throw new TokenNameError()
+		}
+
+		if (this.registration.has(registration.token)) {
+			throw new TokenOverwriteError(getTokenName(registration.token))
+		}
+
 		this.registration.set(registration.token, registration)
 		return this
 	}

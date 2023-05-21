@@ -1,17 +1,18 @@
 import { TokenRegister, Token } from './types'
 import { Scope } from './Scope'
 import { getCurrContext } from './Context'
-import { getRegisterName } from './utils'
+import { CIError } from './errors'
 
 const levels: Token<any>[] = []
 let deep = 0
 
 export function inject<T>(token: Token<T>): T {
 	const localeDeep = deep++
-	levels[localeDeep] = token
 	if (levels.includes(token)) {
-		throw new Error(levels.map(getRegisterName).join(' -> '))
+		throw new CIError([...levels, token])
 	}
+	levels[localeDeep] = token
+
 	const context = getCurrContext()
 	const result = context.scope.resolve(token, context)
 	levels.splice(localeDeep, levels.length - localeDeep)
