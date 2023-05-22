@@ -25,6 +25,8 @@ export type RawRegister<T> = Factory<T> | Constructor<T>
 export type TokenRegister<T> = RegisterClass<T> | RegisterFactory<T> | RegisterValue<T>
 export type Register<T> = TokenRegister<T> | RawRegister<T>
 
+export type Disposable = () => Awaited<any>
+
 export enum Lifetime {
 	SCOPED = 'SCOPED',
 	TRANSIENT = 'TRANSIENT',

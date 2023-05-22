@@ -18,8 +18,8 @@ export class Scope {
 		})
 	}
 
-	resolve<T>(token: Token<T>, context: Context = new Context(this)): T {
-		const registration = this.registration.get(token)!
+	resolve = <T>(token: Token<T>, context: Context = new Context(this)) => {
+		const registration: Registration<T> = this.registration.get(token)!
 
 		if (registration.lifetime === Lifetime.TRANSIENT) {
 			return registration.factory()
@@ -32,13 +32,13 @@ export class Scope {
 		return this.singletonsContext.getValue(registration)
 	}
 
-	injectable<T>(lifetime: Lifetime = Lifetime.SCOPED) {
+	injectable = <T>(lifetime: Lifetime = Lifetime.SCOPED) => {
 		return (constructor: Constructor<T>) => {
 			this.register(constructor, lifetime)
 		}
 	}
 
-	register<T>(provider: Register<T>, lifetime: Lifetime = Lifetime.SCOPED): Scope {
+	register = <T>(provider: Register<T>, lifetime: Lifetime = Lifetime.SCOPED) => {
 		const registration = new Registration(provider, lifetime)
 
 		if (!registration.token) {
@@ -53,7 +53,7 @@ export class Scope {
 		return this
 	}
 
-	scope(registrations: TokenRegister<any>[] = []): Scope {
+	crateChildScope = (registrations: TokenRegister<any>[] = []) => {
 		const merged = new Map<Token<any>, Registration<any>>([
 			...this.registration.entries(),
 			...this.registrationToEntries(registrations)
@@ -62,9 +62,10 @@ export class Scope {
 		return new Scope(merged)
 	}
 
-	dispose() {
-		this.singletonsContext.dispose()
+	dispose = async () => {
+		const disposedContext = this.singletonsContext
 		this.singletonsContext = new Context(this)
+		await disposedContext.dispose()
 	}
 
 	static createScope(registrations: TokenRegister<any>[] = []) {

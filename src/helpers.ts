@@ -1,4 +1,4 @@
-import { TokenRegister, Token } from './types'
+import { TokenRegister, Token, Disposable } from './types'
 import { Scope } from './Scope'
 import { getCurrContext } from './Context'
 import { CIError } from './errors'
@@ -19,16 +19,12 @@ export function inject<T>(token: Token<T>): T {
 	return result
 }
 
+export function onDispose(cb: Disposable) {
+	getCurrContext().onDispose(cb)
+}
+
 export function scope(registrations: TokenRegister<any>[] = []) {
-	const scope = Scope.createScope(registrations)
-
-	scope.register = scope.register.bind(scope)
-	scope.resolve = scope.resolve.bind(scope)
-	scope.dispose = scope.dispose.bind(scope)
-	scope.scope = scope.scope.bind(scope)
-	scope.injectable = scope.injectable.bind(scope)
-
-	return scope
+	return Scope.createScope(registrations)
 }
 
 export function token<T>(_: Token<T> | T, key?: string): Token<T> {
