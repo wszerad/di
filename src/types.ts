@@ -4,26 +4,26 @@ export type Factory<T> = (...args: any[]) => T
 
 export type Token<T> = Symbol | string | Constructor<T> | Factory<T>
 
-export type RegisterBase<T = any> = {
+type GenericProvider<T = any> = {
 	token: Token<T>
 	lifetime?: Lifetime
 }
 
-export type RegisterClass<T = any> = RegisterBase<T> & {
+export type ClassProvider<T = any> = GenericProvider<T> & {
 	useClass: Constructor<T>
 }
 
-export type RegisterFactory<T = any> = RegisterBase<T> & {
+export type FactoryProvider<T = any> = GenericProvider<T> & {
 	useFactory: Factory<T>
 }
 
-export type RegisterValue<T = any> = RegisterBase<T> & {
+export type ValueProvider<T = any> = GenericProvider<T> & {
 	useValue: T
 }
 
-export type RawRegister<T> = Factory<T> | Constructor<T>
-export type TokenRegister<T> = RegisterClass<T> | RegisterFactory<T> | RegisterValue<T>
-export type Register<T> = TokenRegister<T> | RawRegister<T>
+export type RawProvider<T> = Factory<T> | Constructor<T>
+export type TokenProvider<T> = ClassProvider<T> | FactoryProvider<T> | ValueProvider<T>
+export type Provider<T> = TokenProvider<T> | RawProvider<T>
 
 export type Disposable = () => Awaited<any>
 

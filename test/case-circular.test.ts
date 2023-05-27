@@ -1,7 +1,6 @@
 import { inject, Lifetime, scope } from '../src/index'
-import { expect } from 'vitest'
 
-export const { register, resolve } = scope()
+const { register, resolve } = scope()
 
 class Service4 {
 	service = inject(Service0)

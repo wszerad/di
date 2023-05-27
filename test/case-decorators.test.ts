@@ -1,6 +1,6 @@
 import { scope } from '../src/index'
 
-export const { resolve, injectable } = scope()
+const { resolve, injectable } = scope()
 
 @injectable()
 class Module {

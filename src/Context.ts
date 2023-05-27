@@ -1,6 +1,6 @@
-import { Disposable, Token } from './types'
+import { Disposable, Lifetime, Token } from './types'
 import { Registration } from './Registration'
-import { Scope } from './Scope'
+import { Module } from './Module'
 
 let currentContext: Context
 
@@ -19,14 +19,10 @@ export class Context {
 	disposables = new Set<Disposable>()
 
 	constructor(
-		public scope: Scope
+		public module: Module
 	) {}
 
-	onDispose(cb: Disposable) {
-		this.disposables.add(cb)
-	}
-
-	getValue<T>(registration: Registration<T>): T {
+	private getValue<T>(registration: Registration<T>): T {
 		const token = registration.token
 		const reset = setCurrContext(this)
 		if (this.cache.has(token)) {
@@ -39,14 +35,33 @@ export class Context {
 		return value
 	}
 
+	onDispose(cb: Disposable) {
+		this.disposables.add(cb)
+	}
+
+	resolve<T>(token: Token<T>): T {
+		const registration: Registration<T> = this.module.register.get(token)
+
+		if (registration.lifetime === Lifetime.TRANSIENT) {
+			return registration.factory()
+		}
+
+		if (registration.lifetime === Lifetime.SCOPED) {
+			return this.getValue(registration)
+		}
+
+		return this.module.singletonsContext.getValue(registration)
+	}
+
 	async dispose(): Promise<void> {
-		await Promise
+		this.cache.clear()
+		const dispose = Promise
 			.all(
 				Array
 					.from(this.disposables.values())
 					.map(disposable => disposable())
 			)
-			.then()
-		this.cache.clear()
+		this.disposables.clear()
+		await dispose
 	}
 }

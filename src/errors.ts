@@ -1,26 +1,34 @@
 import { Token } from './types'
 import { getTokenName } from './utils'
 
-export class CIError extends Error {
+export class DiError extends Error {}
+
+export class CircularInjectionError extends DiError {
     constructor(tokens: Token<any>[]) {
         super('Circular dependency injection: ' + tokens.map(getTokenName).join(' -> '))
     }
 }
 
-export class TokenOverwriteError extends Error {
+export class TokenOverwriteError extends DiError {
     constructor(name: string) {
         super(`Token with name: ${name} is already registered`)
     }
 }
 
-export class TokenNameError extends Error {
+export class FrozenScopeError extends DiError {
     constructor() {
-        super('Token name can not be empty')
+        super('Module is frozen by child-scope or usage. No additional registration can be made')
     }
 }
 
-export class UnknownTokenError extends Error {
+export class TokenNameError extends DiError {
     constructor() {
-        super('Unknown token')
+        super('Token name cannot be empty')
+    }
+}
+
+export class UnknownTokenError extends DiError {
+    constructor(token: Token<any>) {
+        super(`Unknown token: ${getTokenName(token)}`)
     }
 }

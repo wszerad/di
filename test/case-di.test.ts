@@ -1,6 +1,6 @@
 import { inject, Lifetime, scope } from '../src/index'
 
-export const { register, resolve } = scope()
+const { register, resolve } = scope()
 
 class NestedService {}
 register(NestedService, Lifetime.SCOPED)

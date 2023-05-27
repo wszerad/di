@@ -1,7 +1,6 @@
 import { inject, Lifetime, scope, onDispose } from '../src/index'
-import { afterEach } from 'vitest'
 
-export const { register, resolve, dispose } = scope()
+const { register, resolve, dispose } = scope()
 
 const sleep = (time: number) => new Promise((res) => {
 	setTimeout(res, time)
@@ -38,7 +37,10 @@ describe('case dispose', () => {
 		expect(module1.common).not.toBe(module3.common)
 	})
 
-	it('should ', () => {
-
+	it('should wait until dispose', async () => {
+		resolve(Module)
+		const start = Date.now()
+		await dispose()
+		expect(Date.now()).toBeGreaterThan(start + 100)
 	})
 })

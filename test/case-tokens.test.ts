@@ -1,6 +1,6 @@
 import { inject, scope, token } from '../src/index'
 
-export const { register, resolve } = scope()
+const { register, resolve } = scope()
 
 class Class {
 	class = true
