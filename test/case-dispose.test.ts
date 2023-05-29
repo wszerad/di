@@ -1,6 +1,4 @@
-import { inject, Lifetime, scope, onDispose } from '../src/index'
-
-const { register, resolve, dispose } = scope()
+import { inject, Lifetime, onDispose, Module, Scope } from '../src/index'
 
 const sleep = (time: number) => new Promise((res) => {
 	setTimeout(res, time)
@@ -11,36 +9,57 @@ class CommonService {
 		onDispose(() => sleep(100))
 	}
 }
-register(CommonService, Lifetime.SINGLETON)
 
-class Module {
+class Model {
 	common = inject(CommonService)
 
 	constructor() {
 		onDispose(() => sleep(100))
 	}
 }
-register(Module, Lifetime.SCOPED)
 
 describe('case dispose', () => {
-	afterEach(() => {
-		dispose()
+	let module: Module
+	let scope: Scope
+
+	beforeEach(() => {
+		module = Module.create()
+		module.extend(CommonService, Lifetime.SINGLETON)
+		module.extend(Model, Lifetime.SCOPED)
+		scope = module.createScope()
 	})
 
 	it('should recreate SCOPED instance', () => {
-		const module1 = resolve(Module)
-		const module2 = resolve(Module)
-		expect(module1.common).toBe(module2.common)
-		dispose()
+		const model1 = scope.inject(Model)
+		const model2 = scope.inject(Model)
+		expect(model1).toBe(model2)
+		scope.dispose()
 
-		const module3 = resolve(Module)
-		expect(module1.common).not.toBe(module3.common)
+		const model3 = scope.inject(Model)
+		expect(model1).not.toBe(model3)
 	})
 
-	it('should wait until dispose', async () => {
-		resolve(Module)
+	it('should recreate SINGLETON instance', () => {
+		const model1 = scope.inject(Model)
+		const model2 = module.createScope().inject(Model)
+		expect(model1.common).toBe(model2.common)
+		module.dispose()
+
+		const module3 = module.createScope().inject(Model)
+		expect(model1.common).not.toBe(module3.common)
+	})
+
+	it('should wait until scope dispose', async () => {
+		scope.inject(Model)
 		const start = Date.now()
-		await dispose()
+		await scope.dispose()
+		expect(Date.now()).toBeGreaterThan(start + 100)
+	})
+
+	it('should wait until module dispose', async () => {
+		scope.inject(Model)
+		const start = Date.now()
+		await module.dispose()
 		expect(Date.now()).toBeGreaterThan(start + 100)
 	})
 })

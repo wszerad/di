@@ -1,6 +1,4 @@
-import { inject, scope, token } from '../src/index'
-
-const { register, resolve } = scope()
+import { Scope, inject, Module, token } from '../src/index'
 
 class Class {
 	class = true
@@ -16,50 +14,57 @@ const value = {
 	value: true
 }
 
-register(Class)
-register(factory)
-
 const valueToken = token(value)
-register({
-	token: valueToken,
-	useValue: value
-})
 
 const classToken = token(Class)
-register({
-	token: classToken,
-	useClass: Class
-})
 
 const factoryToken = token(factory)
-register({
-	token: factoryToken,
-	useFactory: factory
-})
 
 describe('case tokens', () => {
+	let module: Module
+	let scope: Scope
+
+	beforeEach(() => {
+		module = Module.create()
+		module.extend(Class)
+		module.extend(factory)
+		module.extend({
+			token: valueToken,
+			useValue: value
+		})
+		module.extend({
+			token: classToken,
+			useClass: Class
+		})
+		module.extend({
+			token: factoryToken,
+			useFactory: factory
+		})
+		scope = module.createScope()
+	})
+
 	it('should resolve class instance', () => {
-		const value = resolve(Class)
+		const value = scope.inject(Class)
 		expect(value.class).toBe(true)
 	})
 
 	it('should resolve factory instance', () => {
-		const value = resolve(factory)
+		const value = scope.inject(factory)
 		expect(value.factory.class).toBe(true)
 	})
 
 	it('should resolve class instances from token', () => {
-		const value = resolve(classToken)
+		const value = scope.inject(classToken)
 		expect(value.class).toBe(true)
 	})
 
 	it('should resolve factory instance from token', () => {
-		const value = resolve(factoryToken)
+		const value = scope.inject(factoryToken)
 		expect(value.factory.class).toBe(true)
 	})
 
 	it('should resolve value from token', () => {
-		const value = resolve(valueToken)
+		const value = scope.inject(valueToken)
 		expect(value.value).toBe(true)
 	})
 })

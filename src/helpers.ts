@@ -1,13 +1,13 @@
-import { Token, Disposable, Lifetime, Constructor } from './types'
-import { getCurrContext } from './Context'
+import { Token, Disposable } from './types'
+import { getCurrScope, setCurrScope } from './models/Scope'
 import { CircularInjectionError } from './errors'
-import { isDevelop } from './utils'
-import { globalRegister } from './Register'
+import { isProduction } from './utils'
+import { globalModule } from './models/Module'
 
 const levels: Token<any>[] = []
 let deep = 0
 
-function loopDetection(action: () => any) {
+function loopDetection(token: Token<any>, action: () => any) {
 	const localeDeep = deep++
 	if (levels.includes(token)) {
 		throw new CircularInjectionError([...levels, token])
@@ -19,27 +19,30 @@ function loopDetection(action: () => any) {
 	return result
 }
 
-function currContextResolve<T>(token: Token<T>): T {
-	const context = getCurrContext()
-	return context.resolve(token)
+function currScopeResolve<T>(token: Token<T>): T {
+	const currScope = getCurrScope()
+
+	if (!currScope) {
+		const scope = globalModule.createScope()
+		const reset = setCurrScope(scope)
+		const value = scope.inject(token)
+		reset()
+		return value
+	}
+
+	return currScope.inject(token)
 }
 
 export function inject<T>(token: Token<T>): T {
-	if (isDevelop) {
-		return loopDetection(() => currContextResolve(token))
+	if (!isProduction) {
+		return loopDetection(token, () => currScopeResolve(token))
 	}
 
-	return currContextResolve(token)
+	return currScopeResolve(token)
 }
 
 export function onDispose(cb: Disposable) {
-	getCurrContext().onDispose(cb)
-}
-
-export function injectable<T>(lifetime: Lifetime = Lifetime.SCOPED) {
-	return (constructor: Constructor<T>) => {
-		globalRegister.registration(constructor, lifetime)
-	}
+	getCurrScope().onDispose(cb)
 }
 
 export function token<T>(_: Token<T> | T, key?: string): Token<T> {

@@ -1,65 +1,67 @@
-import { inject, Lifetime, scope } from '../src/index'
-
-const { register, resolve } = scope()
+import { inject, Lifetime, Module } from '../src/index'
 
 class NestedService {}
-register(NestedService, Lifetime.SCOPED)
 
 class SubService {
 	common = inject(CommonService)
 }
-register(SubService, Lifetime.SCOPED)
 
 class Service {
 	subService = inject(SubService)
 	common = inject(CommonService)
 }
-register(Service, Lifetime.TRANSIENT)
 
 class CommonService {
 	nested = inject(NestedService)
 }
-register(CommonService, Lifetime.SINGLETON)
 
-class Module {
+class Model {
 	service1 = inject(Service)
 	service2 = inject(Service)
 	nested = inject(NestedService)
 	common = inject(CommonService)
 }
-register(Module, Lifetime.SCOPED)
 
-describe('case 01', () => {
-	let module1: Module
-	let module2: Module
+describe('case di', () => {
+	let model1: Model
+	let model2: Model
 
 	beforeEach(() => {
-		module1 = resolve(Module)
-		module2 = resolve(Module)
+		const module = Module.create()
+		module.extend(NestedService, Lifetime.SCOPED)
+		module.extend(SubService, Lifetime.SCOPED)
+		module.extend(Service, Lifetime.TRANSIENT)
+		module.extend(CommonService, Lifetime.SINGLETON)
+		module.extend(Model, Lifetime.SCOPED)
+
+		const context1 = module.createScope()
+		const context2 = module.createScope()
+		model1 = context1.inject(Model)
+		model2 = context2.inject(Model)
 	})
 
 	it('should recreate SCOPED instance', () => {
-		expect(module1).not.toBe(module2)
+		expect(model1).not.toBe(model2)
 	})
 
 	it('should share SINGLETONS between contexts', () => {
-		expect(module1.common).toBe(module2.common)
+		expect(model1.common).toBe(model2.common)
 	})
 
 	it('should share SINGLETONS between levels', () => {
-		expect(module1.common).toBe(module1.service1.common)
-		expect(module1.common).toBe(module1.service1.subService.common)
+		expect(model1.common).toBe(model1.service1.common)
+		expect(model1.common).toBe(model1.service1.subService.common)
 	})
 
 	it('should create new instance for each TRANSIENT dependency', () => {
-		expect(module1.service1).not.toBe(module1.service2)
+		expect(model1.service1).not.toBe(model1.service2)
 	})
 
 	it('should share SCOPED', () => {
-		expect(module1.service1.subService).toBe(module1.service2.subService)
+		expect(model1.service1.subService).toBe(model1.service2.subService)
 	})
 
 	it('should isolate SINGLETONS dependencies', () => {
-		expect(module1.nested).not.toBe(module1.common.nested)
+		expect(model1.nested).not.toBe(model1.common.nested)
 	})
 })

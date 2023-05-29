@@ -1,20 +1,21 @@
-import { scope } from '../src/index'
-
-const { resolve, injectable } = scope()
-
-@injectable()
-class Module {
-	prop = true
-}
+import { Module, Scope } from '../src/index'
 
 describe('case decorators', () => {
-	it('should resolve decorated class', () => {
-		const module = resolve(Module)
-		expect(module.prop).toBe(true)
+	let module: Module
+	let context: Scope
+
+	beforeEach(() => {
+		module = new Module()
+		context = module.createScope()
 	})
 
-	it('should cast decorated class', () => {
-		const module = resolve(Module)
-		expect(module.prop).toBe(true)
+	it('should resolve decorated class', () => {
+		@module.injectable()
+		class Model {
+			prop = true
+		}
+
+		const model = context.inject(Model)
+		expect(model.prop).toBe(true)
 	})
 })

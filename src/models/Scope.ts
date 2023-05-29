@@ -1,20 +1,19 @@
-import { Disposable, Lifetime, Token } from './types'
-import { Registration } from './Registration'
+import { Disposable, Lifetime, Token, Registration } from '../types'
 import { Module } from './Module'
 
-let currentContext: Context
+let currentScope: Scope
 
-export function getCurrContext() {
-	return currentContext
+export function getCurrScope() {
+	return currentScope
 }
 
-export function setCurrContext(context: Context){
-	const prevContext = currentContext
-	currentContext = context
-	return () => currentContext = prevContext
+export function setCurrScope(scope: Scope){
+	const prevContext = currentScope
+	currentScope = scope
+	return () => currentScope = prevContext
 }
 
-export class Context {
+export class Scope {
 	cache = new Map<Token<any>, any>()
 	disposables = new Set<Disposable>()
 
@@ -24,12 +23,12 @@ export class Context {
 
 	private getValue<T>(registration: Registration<T>): T {
 		const token = registration.token
-		const reset = setCurrContext(this)
+		const reset = setCurrScope(this)
 		if (this.cache.has(token)) {
 			reset()
 			return this.cache.get(token)
 		}
-		const value = registration.factory()
+		const value = registration.get()
 		this.cache.set(token, value)
 		reset()
 		return value
@@ -39,11 +38,20 @@ export class Context {
 		this.disposables.add(cb)
 	}
 
-	resolve<T>(token: Token<T>): T {
+	run(runner?: () => void): this {
+		const reset = setCurrScope(this)
+		runner?.()
+		reset()
+		return this
+	}
+
+	inject<T>(token: Token<T>): T {
 		const registration: Registration<T> = this.module.register.get(token)
 
+		this.module.lock()
+
 		if (registration.lifetime === Lifetime.TRANSIENT) {
-			return registration.factory()
+			return registration.get()
 		}
 
 		if (registration.lifetime === Lifetime.SCOPED) {

@@ -1,10 +1,14 @@
-import { inject, Lifetime, scope, onDispose } from '../../src'
-export const globalScope = scope()
-const { injectable } = globalScope
+import { inject, Lifetime, injectable, onDispose } from '../../src'
 
 @injectable(Lifetime.SINGLETON)
 class Db {
 	values = new Map<string | number, any>()
+
+	constructor() {
+		onDispose(() => {
+			console.log('shutdown DB')
+		})
+	}
 
 	get(key: string | number) {
 		return this.values.get(key)
@@ -15,7 +19,6 @@ class Db {
 	}
 }
 
-@injectable(Lifetime.TRANSIENT)
 export class User {
 	db = inject(Db)
 	uuid
@@ -26,17 +29,18 @@ export class User {
 
 		if (sessionId) {
 			this.uuid = sessionId
-			this.session = this.db.get(sessionId)
+			this.session = this.db.get(sessionId) || {}
 		} else {
 			this.uuid = Math.random()
 			this.session = {}
 			res.cookie('session', this.uuid)
 		}
 
-		onDispose(this.saveSession)
+		onDispose(() => this.saveSession())
 	}
 
 	saveSession() {
+		console.log('session save')
 		this.db.set(this.uuid, this.session)
 	}
 }

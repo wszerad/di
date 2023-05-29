@@ -1,6 +1,4 @@
-import { scope, token } from '../src/index'
-
-const { register, resolve, crateChildScope } = scope()
+import { Scope, Module, token } from '../src/index'
 
 class Class {
 	class = true
@@ -10,46 +8,53 @@ class ClassOverwrite {
 	class = false
 }
 
-register(Class)
-
 describe('case subscope', () => {
-	it('should resolve overwritten class', () => {
-		const value1 = resolve(Class)
+	let module: Module
+	let scope: Scope
 
-		const subscope = crateChildScope([
+	beforeEach(() => {
+		module = Module.create()
+		module.extend(Class)
+		scope = module.createScope()
+	})
+
+	it('should resolve overwritten class', () => {
+		const value1 = scope.inject(Class)
+		const newModule = Module.create([
+			module,
 			{
 				token: Class,
 				useClass: ClassOverwrite
 			}
 		])
 
-		const value2 = subscope.resolve(Class)
+		const newScope = newModule.createScope()
+		const value2 = newScope.inject(Class)
 		expect(value1.class).toBe(true)
 		expect(value2.class).toBe(false)
 	})
 
 	it('should fail to register if child scope created', () => {
-		const scope1 = scope()
-
-		scope1.crateChildScope([
-			{
-				token: token(Class),
-				useClass: ClassOverwrite
-			}
+		Module.create([
+			module
 		])
 
 		expect(() => {
-			scope1.register(ClassOverwrite)
+			module.extend({
+				token: token(Class),
+				useClass: ClassOverwrite
+			})
 		}).toThrowError('frozen')
 	})
 
 	it('should fail to register if already resolved', () => {
-		const subscope = crateChildScope()
-
-		subscope.resolve(Class)
+		scope.inject(Class)
 
 		expect(() => {
-			subscope.register(ClassOverwrite)
+			module.extend({
+				token: token(Class),
+				useClass: ClassOverwrite
+			})
 		}).toThrowError('frozen')
 	})
 })
