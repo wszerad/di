@@ -1,4 +1,5 @@
-## @wssz/di
+# @wssz/di
+DI (dependency injection) lib. No external dependencies, cross-env with optional decorator API.
 
 ## Example
 
@@ -6,10 +7,10 @@
 @injectable()
 class Service {
   method() {
-		return 2
+    return 2
   }
 	
-	@dispose
+  @dispose
   onDispose() {
     console.log('Disposed')
   }
@@ -19,9 +20,9 @@ const serviceInstance = resolve(Service)
 serviceInstance.method() // -> 2
 ///
 class ServiceMock {
-	method() {
-		return 4
-	}
+  method() {
+    return 4
+  }
 }
 
 const module = extendModule([
@@ -38,7 +39,7 @@ serviceMockInstance.method() // -> 4
 ## Functions
 
 ### inject(`token: Token<T>`)
-[inject](#scope_inject) provide injector for current scope.
+`inject` provide injector for current scope.
 
 ### token(`value?: T, key?: string`): `Token<T>`
 
@@ -46,16 +47,16 @@ serviceMockInstance.method() // -> 4
 Dispose hook for current scope.
 
 ### extendModule(`registrations: (Provider<any> | Module)[] = []`)
-[extend](#module_extend) method of globalModule.
+`extend` method of globalModule.
 
 ### resetModule()
-[reset](#module_reset) method of globalModule.
+`reset` method of globalModule.
 
 ### provide(`provider: Provider<any>, lifetime = Lifetime.SCOPED`)
-[provide](#module_provide) method of globalModule.
+`provide` method of globalModule.
 
 ### resolve(`token: Token<T>, scope = new Scope(this)`)
-[resolve](#module_resolve) method of globalModule.
+`resolve` method of globalModule.
 
 ## Decorators
 

@@ -31,7 +31,7 @@ interface Registration<T = any> {
 
 declare function inject<T>(token: Token<T>): T;
 declare function onDispose(cb: Disposable): void;
-declare function dispose(this: any, target: Function): Function;
+declare function dispose(this: any, target: (...args: any[]) => any, _: any): (...args: any[]) => any;
 declare function token<T>(_?: Token<T> | T, key?: string): Token<T>;
 
 declare class Scope {

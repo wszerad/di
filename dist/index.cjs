@@ -310,7 +310,7 @@ function inject(token2) {
 function onDispose(cb) {
   getCurrScope().onDispose(cb);
 }
-function dispose(target) {
+function dispose(target, _) {
   onDispose(() => target.call(this));
   return target;
 }

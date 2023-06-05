@@ -6,7 +6,6 @@
     "lib": ["ES2020"],
     "types": ["vitest/globals"],
     "skipLibCheck": true,
-    "experimentalDecorators": true,
 
     /* Bundler mode */
     "moduleResolution": "node",

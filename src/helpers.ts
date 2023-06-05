@@ -45,7 +45,7 @@ export function onDispose(cb: Disposable) {
 	getCurrScope().onDispose(cb)
 }
 
-export function dispose(this: any, target: Function) {
+export function dispose(this: any, target: (...args: any[]) => any, _: any) {
 	onDispose(() => target.call(this))
 	return target
 }
