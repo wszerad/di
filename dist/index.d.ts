@@ -1,6 +1,6 @@
 type Constructor<T> = new (...args: any[]) => T;
 type Factory<T> = (...args: any[]) => T;
-type Token<T> = Symbol | string | Constructor<T> | Factory<T>;
+type Token<T = any> = Symbol | string | Constructor<T> | Factory<T>;
 type GenericProvider<T = any> = {
     token: Token<T>;
     lifetime?: Lifetime;
@@ -31,22 +31,23 @@ interface Registration<T = any> {
 
 declare function inject<T>(token: Token<T>): T;
 declare function onDispose(cb: Disposable): void;
-declare function token<T>(_: Token<T> | T, key?: string): Token<T>;
+declare function dispose(this: any, target: Function): Function;
+declare function token<T>(_?: Token<T> | T, key?: string): Token<T>;
 
 declare class Scope {
-    module: Module;
-    cache: Map<Token<any>, any>;
-    disposables: Set<Disposable>;
+    private readonly module;
+    private readonly cache;
+    private readonly disposables;
     constructor(module: Module);
-    private getValue;
+    private runInScope;
+    getValue<T>(registration: Registration<T>): T;
     onDispose(cb: Disposable): void;
-    run(runner?: () => void): this;
     inject<T>(token: Token<T>): T;
     dispose(): Promise<void>;
 }
 
 declare class Register {
-    private records;
+    private readonly records;
     constructor(registrations?: (Register | Provider<any>)[]);
     private getRegistration;
     get<T>(token: Token<T>): Registration<T>;
@@ -54,27 +55,30 @@ declare class Register {
 }
 
 declare class Module {
-    register: Register;
-    singletonsContext: Scope;
+    private rootScope;
+    private readonly register;
     private locked;
-    constructor(register?: Register);
-    lock(): void;
-    dispose(): Promise<void>;
-    createScope(runInScope?: () => void): Scope;
+    constructor(registrations?: (Provider<any> | Module)[], rootScope?: Scope);
+    private lock;
+    providers(): Register;
+    resolve<T>(token: Token<T>, scope?: Scope): T;
+    reset(): Promise<void>;
+    createScope(): Scope;
     injectable(lifetime?: Lifetime): (constructor: Constructor<any>) => void;
-    extend(provider: Provider<any>, lifetime?: Lifetime): this;
-    create(registrations?: (Provider<any> | Module)[]): Module;
-    static create(registrations?: (TokenProvider<any> | Module)[]): Module;
+    provide(provider: Provider<any>, lifetime?: Lifetime): this;
+    extend(registrations?: (Provider<any> | Module)[]): Module;
 }
-declare const disposeModule: () => Promise<void>;
-declare const createScope: (runInScope?: () => void) => Scope;
-declare const createModule: (registrations?: (Provider<any> | Module)[]) => Module;
+declare const globalModule: Module;
+declare const resetModule: () => Promise<void>;
+declare const extendModule: (registrations?: (Provider<any> | Module)[]) => Module;
 declare const injectable: (lifetime?: Lifetime) => (constructor: Constructor<any>) => void;
+declare const provide: (provider: Provider<any>, lifetime?: Lifetime) => Module;
+declare const resolve: <T>(token: Token<T>, scope?: Scope) => T;
 
 declare class DiError extends Error {
 }
 declare class CircularInjectionError extends DiError {
-    constructor(tokens: Token<any>[]);
+    constructor(tokens: Token[]);
 }
 declare class TokenOverwriteError extends DiError {
     constructor(name: string);
@@ -86,7 +90,7 @@ declare class TokenNameError extends DiError {
     constructor();
 }
 declare class UnknownTokenError extends DiError {
-    constructor(token: Token<any>);
+    constructor(token: Token);
 }
 
-export { CircularInjectionError, DiError, Disposable, FrozenScopeError, Lifetime, Module, Provider, Scope, Token, TokenNameError, TokenOverwriteError, TokenProvider, UnknownTokenError, createModule, createScope, disposeModule, inject, injectable, onDispose, token };
+export { CircularInjectionError, DiError, Disposable, FrozenScopeError, Lifetime, Module, Provider, Scope, Token, TokenNameError, TokenOverwriteError, TokenProvider, UnknownTokenError, dispose, extendModule, globalModule, inject, injectable, onDispose, provide, resetModule, resolve, token };

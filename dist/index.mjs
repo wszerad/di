@@ -1,18 +1,11 @@
-var Lifetime = /* @__PURE__ */ ((Lifetime2) => {
-  Lifetime2["SCOPED"] = "SCOPED";
-  Lifetime2["TRANSIENT"] = "TRANSIENT";
-  Lifetime2["SINGLETON"] = "SINGLETON";
-  return Lifetime2;
-})(Lifetime || {});
-
 let currentScope;
 function getCurrScope() {
   return currentScope;
 }
 function setCurrScope(scope) {
-  const prevContext = currentScope;
+  const prevScope = currentScope;
   currentScope = scope;
-  return () => currentScope = prevContext;
+  return () => currentScope = prevScope;
 }
 class Scope {
   constructor(module) {
@@ -20,37 +13,30 @@ class Scope {
     this.cache = /* @__PURE__ */ new Map();
     this.disposables = /* @__PURE__ */ new Set();
   }
-  getValue(registration) {
-    const token = registration.token;
-    const reset = setCurrScope(this);
-    if (this.cache.has(token)) {
-      reset();
-      return this.cache.get(token);
-    }
-    const value = registration.get();
-    this.cache.set(token, value);
-    reset();
-    return value;
-  }
-  onDispose(cb) {
-    this.disposables.add(cb);
-  }
-  run(runner) {
+  runInScope(runner) {
     const reset = setCurrScope(this);
     runner?.();
     reset();
     return this;
   }
+  getValue(registration) {
+    const token = registration.token;
+    let value;
+    this.runInScope(() => {
+      if (this.cache.has(token)) {
+        value = this.cache.get(token);
+        return;
+      }
+      value = registration.get();
+      this.cache.set(token, value);
+    });
+    return value;
+  }
+  onDispose(cb) {
+    this.disposables.add(cb);
+  }
   inject(token) {
-    const registration = this.module.register.get(token);
-    this.module.lock();
-    if (registration.lifetime === Lifetime.TRANSIENT) {
-      return registration.get();
-    }
-    if (registration.lifetime === Lifetime.SCOPED) {
-      return this.getValue(registration);
-    }
-    return this.module.singletonsContext.getValue(registration);
+    return this.module.resolve(token, this);
   }
   async dispose() {
     this.cache.clear();
@@ -124,6 +110,13 @@ class UnknownTokenError extends DiError {
     super(`Unknown token: ${getTokenName(token)}`);
   }
 }
+
+var Lifetime = /* @__PURE__ */ ((Lifetime2) => {
+  Lifetime2["SCOPED"] = "SCOPED";
+  Lifetime2["TRANSIENT"] = "TRANSIENT";
+  Lifetime2["SINGLETON"] = "SINGLETON";
+  return Lifetime2;
+})(Lifetime || {});
 
 class ClassRegistration {
   constructor(register, lifetime) {
@@ -216,21 +209,43 @@ class Register {
 }
 
 class Module {
-  constructor(register = new Register()) {
-    this.register = register;
-    this.singletonsContext = new Scope(this);
+  constructor(registrations = [], rootScope) {
     this.locked = false;
+    this.rootScope = rootScope || new Scope(this);
+    this.register = new Register(
+      registrations.map((item) => {
+        if (item instanceof Module) {
+          return item.providers();
+        }
+        return item;
+      })
+    );
   }
   lock() {
     this.locked = true;
   }
-  async dispose() {
-    const disposedContext = this.singletonsContext;
-    this.singletonsContext = new Scope(this);
-    await disposedContext.dispose();
+  providers() {
+    this.lock();
+    return this.register;
   }
-  createScope(runInScope) {
-    return new Scope(this).run(runInScope);
+  resolve(token, scope = new Scope(this)) {
+    const registration = this.register.get(token);
+    this.lock();
+    if (registration.lifetime === Lifetime.TRANSIENT) {
+      return registration.get();
+    }
+    if (registration.lifetime === Lifetime.SCOPED) {
+      return scope.getValue(registration);
+    }
+    return this.rootScope.getValue(registration);
+  }
+  async reset() {
+    const disposedScope = this.rootScope;
+    this.rootScope = new Scope(this);
+    await disposedScope.dispose();
+  }
+  createScope() {
+    return new Scope(this);
   }
   injectable(lifetime = Lifetime.SCOPED) {
     return (constructor) => {
@@ -240,35 +255,26 @@ class Module {
       this.register.set(constructor, lifetime);
     };
   }
-  extend(provider, lifetime = Lifetime.SCOPED) {
+  provide(provider, lifetime = Lifetime.SCOPED) {
     if (this.locked) {
       throw new FrozenScopeError();
     }
     this.register.set(provider, lifetime);
     return this;
   }
-  create(registrations = []) {
-    const payload = [this.register];
-    registrations.forEach((item) => {
-      if (item instanceof Module) {
-        item.lock();
-        payload.push(item.register);
-        return;
-      }
-      payload.push(item);
-    });
-    const register = new Register(payload);
-    return new Module(register);
-  }
-  static create(registrations = []) {
-    return globalModule.create(registrations);
+  extend(registrations = []) {
+    return new Module([
+      this,
+      ...registrations
+    ], this.rootScope);
   }
 }
 const globalModule = new Module();
-const disposeModule = globalModule.dispose.bind(globalModule);
-const createScope = globalModule.createScope.bind(globalModule);
-const createModule = globalModule.create.bind(globalModule);
+const resetModule = globalModule.reset.bind(globalModule);
+const extendModule = globalModule.extend.bind(globalModule);
 const injectable = globalModule.injectable.bind(globalModule);
+const provide = globalModule.provide.bind(globalModule);
+const resolve = globalModule.resolve.bind(globalModule);
 
 const levels = [];
 let deep = 0;
@@ -285,7 +291,7 @@ function loopDetection(token2, action) {
 function currScopeResolve(token2) {
   const currScope = getCurrScope();
   if (!currScope) {
-    const scope = globalModule.createScope();
+    const scope = new Scope(globalModule);
     const reset = setCurrScope(scope);
     const value = scope.inject(token2);
     reset();
@@ -302,6 +308,10 @@ function inject(token2) {
 function onDispose(cb) {
   getCurrScope().onDispose(cb);
 }
+function dispose(target) {
+  onDispose(() => target.call(this));
+  return target;
+}
 function token(_, key) {
   if (key) {
     return Symbol.for(key);
@@ -309,4 +319,4 @@ function token(_, key) {
   return Symbol();
 }
 
-export { CircularInjectionError, DiError, FrozenScopeError, Lifetime, Module, Scope, TokenNameError, TokenOverwriteError, UnknownTokenError, createModule, createScope, disposeModule, inject, injectable, onDispose, token };
+export { CircularInjectionError, DiError, FrozenScopeError, Lifetime, Module, Scope, TokenNameError, TokenOverwriteError, UnknownTokenError, dispose, extendModule, globalModule, inject, injectable, onDispose, provide, resetModule, resolve, token };
