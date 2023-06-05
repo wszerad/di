@@ -4,7 +4,7 @@ import { getTokenName } from './utils'
 export class DiError extends Error {}
 
 export class CircularInjectionError extends DiError {
-    constructor(tokens: Token<any>[]) {
+    constructor(tokens: Token[]) {
         super('Circular dependency injection: ' + tokens.map(getTokenName).join(' -> '))
     }
 }
@@ -28,7 +28,7 @@ export class TokenNameError extends DiError {
 }
 
 export class UnknownTokenError extends DiError {
-    constructor(token: Token<any>) {
+    constructor(token: Token) {
         super(`Unknown token: ${getTokenName(token)}`)
     }
 }

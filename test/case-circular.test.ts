@@ -22,21 +22,21 @@ class Service0 {
 
 describe('case circular', () => {
 	let module: Module
-	let context: Scope
+	let scope: Scope
 
 	beforeEach(() => {
 		module = new Module()
-		module.extend(Service4, Lifetime.SCOPED)
-		module.extend(Service3, Lifetime.SCOPED)
-		module.extend(Service2, Lifetime.SCOPED)
-		module.extend(Service1, Lifetime.SCOPED)
-		module.extend(Service0, Lifetime.SCOPED)
-		context = module.createScope()
+		module.provide(Service4, Lifetime.SCOPED)
+		module.provide(Service3, Lifetime.SCOPED)
+		module.provide(Service2, Lifetime.SCOPED)
+		module.provide(Service1, Lifetime.SCOPED)
+		module.provide(Service0, Lifetime.SCOPED)
+		scope = new Scope(module)
 	})
 
 	it('should fail in loop', () => {
 		expect(() => {
-			const service = context.inject(Service0)
+			const service = scope.inject(Service0)
 			expect(service.service)
 		}).toThrowError('Circular')
 	})

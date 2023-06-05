@@ -2,11 +2,11 @@ import { Module, Scope } from '../src/index'
 
 describe('case decorators', () => {
 	let module: Module
-	let context: Scope
+	let scope: Scope
 
 	beforeEach(() => {
 		module = new Module()
-		context = module.createScope()
+		scope = new Scope(module)
 	})
 
 	it('should resolve decorated class', () => {
@@ -15,7 +15,7 @@ describe('case decorators', () => {
 			prop = true
 		}
 
-		const model = context.inject(Model)
+		const model = scope.inject(Model)
 		expect(model.prop).toBe(true)
 	})
 })

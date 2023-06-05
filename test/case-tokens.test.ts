@@ -25,22 +25,22 @@ describe('case tokens', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = Module.create()
-		module.extend(Class)
-		module.extend(factory)
-		module.extend({
+		module = new Module()
+		module.provide(Class)
+		module.provide(factory)
+		module.provide({
 			token: valueToken,
 			useValue: value
 		})
-		module.extend({
+		module.provide({
 			token: classToken,
 			useClass: Class
 		})
-		module.extend({
+		module.provide({
 			token: factoryToken,
 			useFactory: factory
 		})
-		scope = module.createScope()
+		scope = new Scope(module)
 	})
 
 	it('should resolve class instance', () => {

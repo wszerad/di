@@ -6,10 +6,10 @@ import { FactoryRegistration } from '../registrations/FactoryRegistration'
 import { ValueRegistration } from '../registrations/ValueRegistration'
 
 export class Register {
-	private records: Map<Token<any>, Registration<any>>
+	private readonly records: Map<Token, Registration<any>>
 
 	constructor(registrations: (Register | Provider<any>)[] = []) {
-		const records: [Token<any>, Registration][] = []
+		const records: [Token, Registration][] = []
 		registrations
 			.forEach(item => {
 				if (item instanceof Register) {

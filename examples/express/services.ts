@@ -1,4 +1,8 @@
-import { inject, Lifetime, injectable, onDispose } from '../../src'
+import { inject, Lifetime, injectable, onDispose, token, dispose } from '../../src'
+import { Request, Response } from 'express'
+
+export const RequestToken = token<Request>()
+export const ResponseToken = token<Response>()
 
 @injectable(Lifetime.SINGLETON)
 class Db {
@@ -19,12 +23,15 @@ class Db {
 	}
 }
 
+@injectable(Lifetime.SCOPED)
 export class User {
 	db = inject(Db)
 	uuid
 	session: Record<any, any>
 
-	constructor(req: any, res: any) {
+	constructor() {
+		const req = inject(RequestToken)
+		const res = inject(ResponseToken)
 		const sessionId = req.cookies.session
 
 		if (sessionId) {
@@ -39,6 +46,7 @@ export class User {
 		onDispose(() => this.saveSession())
 	}
 
+	@dispose
 	saveSession() {
 		console.log('session save')
 		this.db.set(this.uuid, this.session)

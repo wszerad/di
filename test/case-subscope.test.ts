@@ -13,14 +13,14 @@ describe('case subscope', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = Module.create()
-		module.extend(Class)
-		scope = module.createScope()
+		module = new Module()
+		module.provide(Class)
+		scope = new Scope(module)
 	})
 
 	it('should resolve overwritten class', () => {
 		const value1 = scope.inject(Class)
-		const newModule = Module.create([
+		const newModule = new Module([
 			module,
 			{
 				token: Class,
@@ -28,19 +28,19 @@ describe('case subscope', () => {
 			}
 		])
 
-		const newScope = newModule.createScope()
+		const newScope = new Scope(newModule)
 		const value2 = newScope.inject(Class)
 		expect(value1.class).toBe(true)
 		expect(value2.class).toBe(false)
 	})
 
 	it('should fail to register if child scope created', () => {
-		Module.create([
+		new Module([
 			module
 		])
 
 		expect(() => {
-			module.extend({
+			module.provide({
 				token: token(Class),
 				useClass: ClassOverwrite
 			})
@@ -51,7 +51,7 @@ describe('case subscope', () => {
 		scope.inject(Class)
 
 		expect(() => {
-			module.extend({
+			module.provide({
 				token: token(Class),
 				useClass: ClassOverwrite
 			})

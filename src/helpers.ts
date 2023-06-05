@@ -1,13 +1,13 @@
 import { Token, Disposable } from './types'
-import { getCurrScope, setCurrScope } from './models/Scope'
+import { getCurrScope, Scope, setCurrScope } from './models/Scope'
 import { CircularInjectionError } from './errors'
 import { isProduction } from './utils'
 import { globalModule } from './models/Module'
 
-const levels: Token<any>[] = []
+const levels: Token[] = []
 let deep = 0
 
-function loopDetection(token: Token<any>, action: () => any) {
+function loopDetection(token: Token, action: () => any) {
 	const localeDeep = deep++
 	if (levels.includes(token)) {
 		throw new CircularInjectionError([...levels, token])
@@ -23,7 +23,7 @@ function currScopeResolve<T>(token: Token<T>): T {
 	const currScope = getCurrScope()
 
 	if (!currScope) {
-		const scope = globalModule.createScope()
+		const scope = new Scope(globalModule)
 		const reset = setCurrScope(scope)
 		const value = scope.inject(token)
 		reset()
@@ -45,7 +45,12 @@ export function onDispose(cb: Disposable) {
 	getCurrScope().onDispose(cb)
 }
 
-export function token<T>(_: Token<T> | T, key?: string): Token<T> {
+export function dispose(this: any, target: Function) {
+	onDispose(() => target.call(this))
+	return target
+}
+
+export function token<T>(_?: Token<T> | T, key?: string): Token<T> {
 	if (key) {
 		return Symbol.for(key)
 	}

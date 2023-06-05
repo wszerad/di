@@ -23,10 +23,10 @@ describe('case dispose', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = Module.create()
-		module.extend(CommonService, Lifetime.SINGLETON)
-		module.extend(Model, Lifetime.SCOPED)
-		scope = module.createScope()
+		module = new Module()
+		module.provide(CommonService, Lifetime.SINGLETON)
+		module.provide(Model, Lifetime.SCOPED)
+		scope = new Scope(module)
 	})
 
 	it('should recreate SCOPED instance', () => {
@@ -41,11 +41,11 @@ describe('case dispose', () => {
 
 	it('should recreate SINGLETON instance', () => {
 		const model1 = scope.inject(Model)
-		const model2 = module.createScope().inject(Model)
+		const model2 = new Scope(module).inject(Model)
 		expect(model1.common).toBe(model2.common)
-		module.dispose()
+		module.reset()
 
-		const module3 = module.createScope().inject(Model)
+		const module3 = new Scope(module).inject(Model)
 		expect(model1.common).not.toBe(module3.common)
 	})
 
@@ -59,7 +59,7 @@ describe('case dispose', () => {
 	it('should wait until module dispose', async () => {
 		scope.inject(Model)
 		const start = Date.now()
-		await module.dispose()
+		await module.reset()
 		expect(Date.now()).toBeGreaterThan(start + 100)
 	})
 })

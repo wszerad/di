@@ -1,28 +1,58 @@
-import { Constructor, Lifetime, Provider, TokenProvider } from '../types'
+import { Constructor, Lifetime, Provider, Registration, Token } from '../types'
 import { Scope } from '../models/Scope'
 import { Register } from './Register'
 import { FrozenScopeError } from '../errors'
 
 export class Module {
-	singletonsContext: Scope = new Scope(this)
+	private rootScope: Scope
+	private readonly register: Register
 	private locked = false
 
-	constructor(
-		public register: Register = new Register(),
-	) {}
+	constructor(registrations: (Provider<any> | Module)[] = [], rootScope?: Scope) {
+		this.rootScope = rootScope || new Scope(this)
+		this.register = new Register(
+			registrations.map(item => {
+				if (item instanceof Module) {
+					return item.providers()
+				}
+				return item
+			})
+		)
+	}
 
-	lock() {
+	private lock() {
 		this.locked = true
 	}
 
-	async dispose() {
-		const disposedContext = this.singletonsContext
-		this.singletonsContext = new Scope(this)
-		await disposedContext.dispose()
+	providers() {
+		this.lock()
+		return this.register
 	}
 
-	createScope(runInScope?: () => void) {
-		return new Scope(this).run(runInScope)
+	resolve<T>(token: Token<T>, scope = new Scope(this)): T {
+		const registration: Registration<T> = this.register.get(token)
+
+		this.lock()
+
+		if (registration.lifetime === Lifetime.TRANSIENT) {
+			return registration.get()
+		}
+
+		if (registration.lifetime === Lifetime.SCOPED) {
+			return scope.getValue(registration)
+		}
+
+		return this.rootScope.getValue(registration)
+	}
+
+	async reset() {
+		const disposedScope = this.rootScope
+		this.rootScope = new Scope(this)
+		await disposedScope.dispose()
+	}
+
+	createScope() {
+		return new Scope(this)
 	}
 
 	injectable(lifetime: Lifetime = Lifetime.SCOPED) {
@@ -35,7 +65,7 @@ export class Module {
 		}
 	}
 
-	extend(provider: Provider<any>, lifetime = Lifetime.SCOPED) {
+	provide(provider: Provider<any>, lifetime = Lifetime.SCOPED) {
 		if (this.locked) {
 			throw new FrozenScopeError()
 		}
@@ -44,29 +74,17 @@ export class Module {
 		return this
 	}
 
-	create(registrations: (Provider<any> | Module)[] = []) {
-		const payload: (Register | Provider<any>)[] = [this.register]
-
-		registrations.forEach(item => {
-			if (item instanceof Module) {
-				item.lock()
-				payload.push(item.register)
-				return
-			}
-			payload.push(item)
-		})
-
-		const register = new Register(payload)
-		return new Module(register)
-	}
-
-	static create(registrations: (TokenProvider<any> | Module)[] = []) {
-		return globalModule.create(registrations)
+	extend(registrations: (Provider<any> | Module)[] = []) {
+		return new Module([
+			this,
+			...registrations
+		], this.rootScope)
 	}
 }
 
 export const globalModule = new Module()
-export const disposeModule = globalModule.dispose.bind(globalModule)
-export const createScope = globalModule.createScope.bind(globalModule)
-export const createModule = globalModule.create.bind(globalModule)
+export const resetModule = globalModule.reset.bind(globalModule)
+export const extendModule = globalModule.extend.bind(globalModule)
 export const injectable = globalModule.injectable.bind(globalModule)
+export const provide = globalModule.provide.bind(globalModule)
+export const resolve = globalModule.resolve.bind(globalModule)

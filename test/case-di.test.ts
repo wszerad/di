@@ -1,4 +1,4 @@
-import { inject, Lifetime, Module } from '../src/index'
+import { inject, Lifetime, Module, Scope } from '../src/index'
 
 class NestedService {}
 
@@ -27,24 +27,24 @@ describe('case di', () => {
 	let model2: Model
 
 	beforeEach(() => {
-		const module = Module.create()
-		module.extend(NestedService, Lifetime.SCOPED)
-		module.extend(SubService, Lifetime.SCOPED)
-		module.extend(Service, Lifetime.TRANSIENT)
-		module.extend(CommonService, Lifetime.SINGLETON)
-		module.extend(Model, Lifetime.SCOPED)
+		const module = new Module()
+		module.provide(NestedService, Lifetime.SCOPED)
+		module.provide(SubService, Lifetime.SCOPED)
+		module.provide(Service, Lifetime.TRANSIENT)
+		module.provide(CommonService, Lifetime.SINGLETON)
+		module.provide(Model, Lifetime.SCOPED)
 
-		const context1 = module.createScope()
-		const context2 = module.createScope()
-		model1 = context1.inject(Model)
-		model2 = context2.inject(Model)
+		const scope1 = new Scope(module)
+		const scope2 = new Scope(module)
+		model1 = scope1.inject(Model)
+		model2 = scope2.inject(Model)
 	})
 
 	it('should recreate SCOPED instance', () => {
 		expect(model1).not.toBe(model2)
 	})
 
-	it('should share SINGLETONS between contexts', () => {
+	it('should share SINGLETONS between scopes', () => {
 		expect(model1.common).toBe(model2.common)
 	})
 

@@ -33,7 +33,7 @@ export function isFactoryProvider(input: any): input is FactoryProvider {
 	return input.hasOwnProperty('useFactory')
 }
 
-export function getTokenName(token: Token<any>) {
+export function getTokenName(token: Token) {
 	switch (typeof token) {
 		case 'string':
 			return token

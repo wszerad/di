@@ -1,7 +1,7 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
-import { User } from './services'
-import { createScope, disposeModule } from '../../src'
+import { RequestToken, ResponseToken, User } from './services'
+import { resetModule, extendModule, Scope } from '../../src'
 
 const router = express.Router()
 
@@ -12,10 +12,20 @@ router.get('/:path', (req: any, res: any) => {
 
 const app = express()
 app.use(cookieParser())
-app.use((req, res, next) => {
-	const scope = createScope(() => {
-		(req as any).user = new User(req, res)
-	})
+app.use((req: any, res, next) => {
+	const module = extendModule([
+		{
+			token: RequestToken,
+			useValue: req
+		},
+		{
+			token: ResponseToken,
+			useValue: res
+		}
+	])
+
+	const scope = new Scope(module)
+	req.user = scope.inject(User)
 
 	res.once('finish', () => {
 		scope.dispose()
@@ -29,7 +39,7 @@ const server = app.listen(3000)
 function handleShutdown() {
 	console.log('shutdown started')
 	server.close(async () => {
-		await disposeModule()
+		await resetModule()
 		console.log('module disposed')
 	})
 }
