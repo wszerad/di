@@ -1,17 +1,7 @@
-import { ClassProvider, Lifetime, Registration, Token } from '../types'
+import { ClassProvider } from '../types'
+import { Registration } from './Registration'
 
-export class ClassRegistration<T> implements Registration<T> {
-	token: Token<T>
-	lifetime: Lifetime
-
-	constructor(
-		public register: ClassProvider<T>,
-		lifetime: Lifetime
-	) {
-		this.token = register.token
-		this.lifetime = register.lifetime || lifetime
-	}
-
+export class ClassRegistration<T> extends Registration<T, ClassProvider<T>> {
 	get(): T {
 		return new this.register.useClass()
 	}

@@ -1,62 +1,45 @@
-import { Constructor, Lifetime, Provider, Registration, Token } from '../types'
+import { Constructor, Lifetime, Provider, Token } from '../types'
 import { Scope } from '../models/Scope'
 import { Register } from './Register'
 import { FrozenScopeError } from '../errors'
 
 export class Module {
-	private rootScope: Scope
 	private readonly register: Register
 	private locked = false
+	scope: Scope | null
 
-	constructor(registrations: (Provider<any> | Module)[] = [], rootScope?: Scope) {
-		this.rootScope = rootScope || new Scope(this)
+	constructor(
+		registrations: (Provider<any> | Module)[] = [],
+		isolated = false
+	) {
 		this.register = new Register(
 			registrations.map(item => {
 				if (item instanceof Module) {
-					return item.providers()
+					return item.providers
 				}
 				return item
-			})
+			}),
+			isolated
 		)
+		this.scope = isolated ? new Scope(this) : null
 	}
 
 	private lock() {
 		this.locked = true
 	}
 
-	providers() {
+	get providers() {
 		this.lock()
 		return this.register
 	}
 
 	resolve<T>(token: Token<T>, scope = new Scope(this)): T {
-		const registration: Registration<T> = this.register.get(token)
-
 		this.lock()
-
-		if (registration.lifetime === Lifetime.TRANSIENT) {
-			return registration.get()
-		}
-
-		if (registration.lifetime === Lifetime.SCOPED) {
-			return scope.getValue(registration)
-		}
-
-		return this.rootScope.getValue(registration)
-	}
-
-	async reset() {
-		const disposedScope = this.rootScope
-		this.rootScope = new Scope(this)
-		await disposedScope.dispose()
-	}
-
-	createScope() {
-		return new Scope(this)
+		return scope.inject(token)
 	}
 
 	injectable(lifetime: Lifetime = Lifetime.SCOPED) {
-		return (constructor: Constructor<any>) => {
+		return (constructor: Constructor<any>, _: any) => {
 			if (this.locked) {
 				throw new FrozenScopeError()
 			}
@@ -78,12 +61,15 @@ export class Module {
 		return new Module([
 			this,
 			...registrations
-		], this.rootScope)
+		])
+	}
+
+	async dispose() {
+		await this.scope?.dispose()
 	}
 }
 
 export const globalModule = new Module()
-export const resetModule = globalModule.reset.bind(globalModule)
 export const extendModule = globalModule.extend.bind(globalModule)
 export const injectable = globalModule.injectable.bind(globalModule)
 export const provide = globalModule.provide.bind(globalModule)

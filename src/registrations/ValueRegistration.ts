@@ -1,17 +1,7 @@
-import { Lifetime, Registration, Token, ValueProvider } from '../types'
+import { ValueProvider } from '../types'
+import { Registration } from './Registration'
 
-export class ValueRegistration<T> implements Registration<T> {
-	token: Token<T>
-	lifetime: Lifetime
-
-	constructor(
-		public register: ValueProvider<T>,
-		lifetime: Lifetime
-	) {
-		this.token = register.token
-		this.lifetime = register.lifetime || lifetime
-	}
-
+export class ValueRegistration<T> extends Registration<T, ValueProvider<T>> {
 	get(): T {
 		return this.register.useValue
 	}

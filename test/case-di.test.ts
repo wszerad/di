@@ -27,7 +27,7 @@ describe('case di', () => {
 	let model2: Model
 
 	beforeEach(() => {
-		const module = new Module()
+		const module = new Module([], true)
 		module.provide(NestedService, Lifetime.SCOPED)
 		module.provide(SubService, Lifetime.SCOPED)
 		module.provide(Service, Lifetime.TRANSIENT)
@@ -62,6 +62,7 @@ describe('case di', () => {
 	})
 
 	it('should isolate SINGLETONS dependencies', () => {
+		expect(model1.nested instanceof NestedService).toBe(true)
 		expect(model1.nested).not.toBe(model1.common.nested)
 	})
 })

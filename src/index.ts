@@ -1,6 +1,6 @@
 export type { Token, TokenProvider, Disposable, Provider } from './types'
 export { inject, token, onDispose, dispose } from './helpers'
-export { Module, globalModule, resolve, extendModule, resetModule, injectable, provide } from './models/Module'
+export { Module, globalModule, resolve, extendModule, injectable, provide } from './models/Module'
 export { Lifetime } from './types'
-export { Scope } from './models/Scope'
+export { Scope, globalScope } from './models/Scope'
 export { DiError, CircularInjectionError, FrozenScopeError, TokenOverwriteError, UnknownTokenError, TokenNameError } from './errors'

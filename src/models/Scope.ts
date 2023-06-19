@@ -1,5 +1,5 @@
-import { Disposable, Token, Registration } from '../types'
-import { Module } from './Module'
+import { Disposable, Lifetime, Token } from '../types'
+import { globalModule, Module } from './Module'
 
 let currentScope: Scope
 
@@ -21,26 +21,10 @@ export class Scope {
 		private readonly module: Module
 	) {}
 
-	private runInScope(runner?: () => void): this {
+	private runInScope<T>(runner: () => T): T {
 		const reset = setCurrScope(this)
-		runner?.()
+		const value = runner()
 		reset()
-		return this
-	}
-
-	getValue<T>(registration: Registration<T>): T {
-		const token = registration.token
-		let value: any
-
-		this.runInScope(() => {
-			if (this.cache.has(token)) {
-				value = this.cache.get(token)
-				return
-			}
-			value = registration.get()
-			this.cache.set(token, value)
-		})
-
 		return value
 	}
 
@@ -49,7 +33,23 @@ export class Scope {
 	}
 
 	inject<T>(token: Token<T>): T {
-		return this.module.resolve(token, this)
+		const registration = this.module.providers.get(token)
+
+		if (registration.lifetime === Lifetime.TRANSIENT) {
+			return this.runInScope(() => registration.value)
+		}
+
+		if (registration.lifetime === Lifetime.SCOPED) {
+			if (this.cache.has(token)) {
+				return this.cache.get(token)
+			}
+			const value = this.runInScope(() => registration.value)
+			this.cache.set(token, value)
+			return value
+		}
+
+		const scope = this.module.scope || globalScope
+		return scope.runInScope(() => registration.value)
 	}
 
 	async dispose(): Promise<void> {
@@ -64,3 +64,5 @@ export class Scope {
 		await dispose
 	}
 }
+
+export const globalScope = new Scope(globalModule)

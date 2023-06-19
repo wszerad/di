@@ -1,26 +1,41 @@
-import { Lifetime, Provider, Registration, Token } from '../types'
+import { Lifetime, Provider, Token } from '../types'
 import { TokenNameError, TokenOverwriteError, UnknownTokenError } from '../errors'
 import { getTokenName, isClassProvider, isFactoryProvider, isRawClass, isRawFactory, isValueProvider } from '../utils'
 import { ClassRegistration } from '../registrations/ClassRegistration'
 import { FactoryRegistration } from '../registrations/FactoryRegistration'
 import { ValueRegistration } from '../registrations/ValueRegistration'
+import { Registration } from '../registrations/Registration'
 
 export class Register {
-	private readonly records: Map<Token, Registration<any>>
+	private readonly records: Map<Token, Registration>
 
-	constructor(registrations: (Register | Provider<any>)[] = []) {
+	constructor(
+		registrations: (Register | Provider<any>)[] = [],
+		isolated = false
+	) {
 		const records: [Token, Registration][] = []
-		registrations
-			.forEach(item => {
+		// TODO recreate singleton providers and add test
+		const entries = registrations
+			.reduce((acc, item) => {
 				if (item instanceof Register) {
-					records.push(...item.records.entries())
-					return
+					acc.push(...item.records.entries())
+					return acc
 				}
 
 				const t = this.getRegistration(item)
-				records.push([t.token, t])
+				acc.push([t.token, t])
+				return acc
+			}, records)
+			.map(record => {
+				if (isolated && record[1].lifetime === Lifetime.SINGLETON) {
+					const { value, ...params } = record[1]
+					const Constructor: any = record[1].constructor
+					return new Constructor(params, params.lifetime)
+				}
+				return record
 			})
-		this.records = new Map(records)
+
+		this.records = new Map(entries)
 	}
 
 	private getRegistration(provider: Provider<any>, lifetime: Lifetime = Lifetime.SCOPED) {

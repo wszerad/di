@@ -4,7 +4,7 @@ export type Factory<T> = (...args: any[]) => T
 
 export type Token<T = any> = Symbol | string | Constructor<T> | Factory<T>
 
-type GenericProvider<T = any> = {
+export type GenericProvider<T = any> = {
 	token: Token<T>
 	lifetime?: Lifetime
 }
@@ -33,8 +33,3 @@ export enum Lifetime {
 	SINGLETON = 'SINGLETON'
 }
 
-export interface Registration<T = any> {
-	token: Token<T>
-	lifetime: Lifetime
-	get(): T
-}

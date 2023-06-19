@@ -1,17 +1,7 @@
-import { FactoryProvider, Lifetime, Registration, Token } from '../types'
+import { FactoryProvider } from '../types'
+import { Registration } from './Registration'
 
-export class FactoryRegistration<T> implements Registration<T> {
-	token: Token<T>
-	lifetime: Lifetime
-
-	constructor(
-		public register: FactoryProvider<T>,
-		lifetime: Lifetime
-	) {
-		this.token = register.token
-		this.lifetime = register.lifetime || lifetime
-	}
-
+export class FactoryRegistration<T> extends Registration<T, FactoryProvider<T>> {
 	get(): T {
 		return this.register.useFactory()
 	}
