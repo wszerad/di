@@ -7,6 +7,7 @@ export type Token<T = any> = Symbol | string | Constructor<T> | Factory<T>
 export type GenericProvider<T = any> = {
 	token: Token<T>
 	lifetime?: Lifetime
+	provider?: () => T
 }
 
 export type ClassProvider<T = any> = GenericProvider<T> & {

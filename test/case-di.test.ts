@@ -23,11 +23,12 @@ class Model {
 }
 
 describe('case di', () => {
+	let module: Module
 	let model1: Model
 	let model2: Model
 
 	beforeEach(() => {
-		const module = new Module([], true)
+		module = new Module([], true)
 		module.provide(NestedService, Lifetime.SCOPED)
 		module.provide(SubService, Lifetime.SCOPED)
 		module.provide(Service, Lifetime.TRANSIENT)
@@ -64,5 +65,11 @@ describe('case di', () => {
 	it('should isolate SINGLETONS dependencies', () => {
 		expect(model1.nested instanceof NestedService).toBe(true)
 		expect(model1.nested).not.toBe(model1.common.nested)
+	})
+
+	it('should isolate SINGLETONS in isolated modules', () => {
+		const moduleClone = new Module([module], true)
+		const model3 = moduleClone.resolve(Model)
+		expect(model1.common).not.toBe(model3.common)
 	})
 })

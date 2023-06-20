@@ -14,7 +14,6 @@ export class Register {
 		isolated = false
 	) {
 		const records: [Token, Registration][] = []
-		// TODO recreate singleton providers and add test
 		const entries = registrations
 			.reduce((acc, item) => {
 				if (item instanceof Register) {
@@ -28,9 +27,8 @@ export class Register {
 			}, records)
 			.map(record => {
 				if (isolated && record[1].lifetime === Lifetime.SINGLETON) {
-					const { value, ...params } = record[1]
 					const Constructor: any = record[1].constructor
-					return new Constructor(params, params.lifetime)
+					return [record[0], new Constructor(record[1])] as [Token, Registration]
 				}
 				return record
 			})

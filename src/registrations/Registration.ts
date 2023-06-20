@@ -4,16 +4,20 @@ export abstract class Registration<T = any, R extends GenericProvider<T> = Gener
 	private _value: T | undefined
 	token: Token<T>
 	lifetime: Lifetime
+	provider: any
 
 	constructor(
-		public register: R,
+		register: R,
 		lifetime: Lifetime
 	) {
 		this.token = register.token
 		this.lifetime = register.lifetime || lifetime
+		this.provider = this.extract(register) || register.provider
 	}
 
 	protected abstract get(): T
+
+	protected abstract extract(register: R): any
 
 	get value() {
 		if (this.lifetime === Lifetime.SINGLETON) {
