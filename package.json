@@ -1,6 +1,6 @@
 {
   "name": "@wssz/di",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "type": "module",
   "exports": {
@@ -15,8 +15,9 @@
     "dist"
   ],
   "scripts": {
-    "test": "vitest",
-    "build": "vitest run & unbuild"
+    "dev": "vitest",
+    "test": "vitest run",
+    "build": "unbuild"
   },
   "devDependencies": {
     "vite": "^4.3.9",
