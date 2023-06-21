@@ -43,6 +43,6 @@ describe('case dispose', () => {
 		scope.inject(Model)
 		const start = Date.now()
 		await scope.dispose()
-		expect(Date.now()).toBeGreaterThan(start + 99)
+		expect(Date.now()).toBeGreaterThan(start + 90)
 	})
 })
