@@ -46,7 +46,6 @@ export class User {
 		onDispose(() => this.saveSession())
 	}
 
-	@dispose
 	saveSession() {
 		console.log('session save')
 		this.db.set(this.uuid, this.session)

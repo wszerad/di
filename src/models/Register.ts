@@ -1,3 +1,4 @@
+import { warn } from '../helpers.ts'
 import { Lifetime, Provider, Token } from '../types'
 import { TokenNameError, TokenOverwriteError, UnknownTokenError } from '../errors'
 import { getTokenName, isClassProvider, isFactoryProvider, isRawClass, isRawFactory, isValueProvider } from '../utils'
@@ -84,7 +85,7 @@ export class Register {
 		}
 
 		if (this.records.has(registration.token)) {
-			throw new TokenOverwriteError(getTokenName(registration.token))
+			warn(new TokenOverwriteError(getTokenName(registration.token)).message)
 		}
 
 		this.records.set(registration.token, registration)

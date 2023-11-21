@@ -1,7 +1,7 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { RequestToken, ResponseToken, User } from './services'
-import { resetModule, extendModule, Scope } from '../../src'
+import { globalModule, Scope } from '../../src'
 
 const router = express.Router()
 
@@ -13,7 +13,7 @@ router.get('/:path', (req: any, res: any) => {
 const app = express()
 app.use(cookieParser())
 app.use((req: any, res, next) => {
-	const module = extendModule([
+	const module = globalModule.extend([
 		{
 			token: RequestToken,
 			useValue: req
@@ -39,7 +39,7 @@ const server = app.listen(3000)
 function handleShutdown() {
 	console.log('shutdown started')
 	server.close(async () => {
-		await resetModule()
+		await globalModule.dispose()
 		console.log('module disposed')
 	})
 }
@@ -47,3 +47,13 @@ function handleShutdown() {
 process.once('SIGINT', handleShutdown)
 process.once('SIGTERM', handleShutdown)
 process.once('SIGBREAK', handleShutdown)
+
+function end() {
+	server.close()
+	console.log('restart')
+}
+
+if (import.meta.hot) {
+	import.meta.hot.on('vite:beforeFullReload', end);
+	import.meta.hot.dispose(end);
+}

@@ -1,3 +1,4 @@
+import { isDevelopment } from 'std-env'
 import { Token, Disposable } from './types'
 import { getCurrScope, Scope, setCurrScope } from './models/Scope'
 import { CircularInjectionError } from './errors'
@@ -55,4 +56,10 @@ export function token<T>(_?: Token<T> | T, key?: string): Token<T> {
 		return Symbol.for(key)
 	}
 	return Symbol()
+}
+
+export function warn(message: any) {
+	if (!isDevelopment) {
+		console.warn(message)
+	}
 }

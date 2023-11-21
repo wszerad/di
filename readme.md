@@ -344,11 +344,7 @@ const moduleWithDifferentConfig = module.extend([
 ## globalModule
 Providers registered by `@injectable` are saved in globalModule. Shorthand available:
 
-### extendModule = `globalModule.extend`
-
 ### provide = `globalModule.provide`
-
-### resolve = `globalModule.resolve`
 
 ## Scope
 Scope contain cached providers registered () in module. Gives possibility to dispose services created in scope.

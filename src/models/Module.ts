@@ -70,7 +70,5 @@ export class Module {
 }
 
 export const globalModule = new Module()
-export const extendModule = globalModule.extend.bind(globalModule)
 export const injectable = globalModule.injectable.bind(globalModule)
 export const provide = globalModule.provide.bind(globalModule)
-export const resolve = globalModule.resolve.bind(globalModule)
