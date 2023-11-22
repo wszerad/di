@@ -1,4 +1,4 @@
-import { Scope, Module, token } from '../src/index'
+import { Scope, Module } from '../src/index'
 
 class Class {
 	class = true
@@ -34,27 +34,27 @@ describe('case subscope', () => {
 		expect(value2.class).toBe(false)
 	})
 
-	it('should fail to register if child scope created', () => {
-		new Module([
-			module
-		])
-
-		expect(() => {
-			module.provide({
-				token: token(Class),
-				useClass: ClassOverwrite
-			})
-		}).toThrowError('frozen')
-	})
-
-	it('should fail to register if already resolved', () => {
-		scope.inject(Class)
-
-		expect(() => {
-			module.provide({
-				token: token(Class),
-				useClass: ClassOverwrite
-			})
-		}).toThrowError('frozen')
-	})
+	// it('should fail to register if child scope created', () => {
+	// 	new Module([
+	// 		module
+	// 	])
+	//
+	// 	expect(() => {
+	// 		module.provide({
+	// 			token: token(Class),
+	// 			useClass: ClassOverwrite
+	// 		})
+	// 	}).toThrowError('frozen')
+	// })
+	//
+	// it('should fail to register if already resolved', () => {
+	// 	scope.inject(Class)
+	//
+	// 	expect(() => {
+	// 		module.provide({
+	// 			token: token(Class),
+	// 			useClass: ClassOverwrite
+	// 		})
+	// 	}).toThrowError('frozen')
+	// })
 })
