@@ -1,3 +1,4 @@
+import { warn } from '../helpers.ts'
 import { Constructor, Lifetime, Provider, Token } from '../types'
 import { Scope } from '../models/Scope'
 import { Register } from './Register'
@@ -41,7 +42,7 @@ export class Module {
 	injectable(lifetime: Lifetime = Lifetime.SCOPED) {
 		return (constructor: Constructor<any>, _: any) => {
 			if (this.locked) {
-				throw new FrozenScopeError()
+				warn(new FrozenScopeError().message)
 			}
 
 			this.register.set(constructor, lifetime)
@@ -50,7 +51,7 @@ export class Module {
 
 	provide(provider: Provider<any>, lifetime = Lifetime.SCOPED) {
 		if (this.locked) {
-			throw new FrozenScopeError()
+			warn(new FrozenScopeError().message)
 		}
 
 		this.register.set(provider, lifetime)

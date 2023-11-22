@@ -17,7 +17,7 @@ export class TokenOverwriteError extends DiError {
 
 export class FrozenScopeError extends DiError {
     constructor() {
-        super('Module is frozen by child-scope or usage. No additional registration can be made')
+        super('Module is already in use and some dependency is injected')
     }
 }
 
