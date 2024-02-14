@@ -1,40 +1,27 @@
-import { warn } from '../helpers.ts'
 import { Lifetime, Provider, Token } from '../types'
-import { TokenNameError, TokenOverwriteError, UnknownTokenError } from '../errors'
-import { getTokenName, isClassProvider, isFactoryProvider, isRawClass, isRawFactory, isValueProvider } from '../utils'
+import { TokenNameError, UnknownTokenError } from '../errors'
+import { isClassProvider, isFactoryProvider, isRawClass, isRawFactory, isValueProvider } from '../utils'
 import { ClassRegistration } from '../registrations/ClassRegistration'
 import { FactoryRegistration } from '../registrations/FactoryRegistration'
 import { ValueRegistration } from '../registrations/ValueRegistration'
 import { Registration } from '../registrations/Registration'
 
 export class Register {
-	private readonly records: Map<Token, Registration>
+	private readonly records: Map<Token, Registration> = new Map()
+	private readonly registers: Register[] = []
 
 	constructor(
-		registrations: (Register | Provider<any>)[] = [],
-		isolated = false
+		registrations: (Register | Provider<any>)[] = []
 	) {
-		const records: [Token, Registration][] = []
-		const entries = registrations
-			.reduce((acc, item) => {
-				if (item instanceof Register) {
-					acc.push(...item.records.entries())
-					return acc
-				}
+		for (const entry of registrations) {
+			if (entry instanceof Register) {
+				this.registers.push(entry)
+				continue
+			}
 
-				const t = this.getRegistration(item)
-				acc.push([t.token, t])
-				return acc
-			}, records)
-			.map(record => {
-				if (isolated && record[1].lifetime === Lifetime.SINGLETON) {
-					const Constructor: any = record[1].constructor
-					return [record[0], new Constructor(record[1])] as [Token, Registration]
-				}
-				return record
-			})
-
-		this.records = new Map(entries)
+			const t = this.getRegistration(entry)
+			this.records.set(t.token, t)
+		}
 	}
 
 	private getRegistration(provider: Provider<any>, lifetime: Lifetime = Lifetime.SCOPED) {
@@ -70,6 +57,16 @@ export class Register {
 	get<T>(token: Token<T>): Registration<T> {
 		const registration = this.records.get(token)
 
+		for (const register of this.registers) {
+			const result = register.get(token)
+
+			if (!result) {
+				continue
+			}
+
+			return result
+		}
+
 		if (!registration) {
 			throw new UnknownTokenError(token)
 		}
@@ -82,10 +79,6 @@ export class Register {
 
 		if (!registration.token) {
 			throw new TokenNameError()
-		}
-
-		if (this.records.has(registration.token)) {
-			warn(new TokenOverwriteError(getTokenName(registration.token)).message)
 		}
 
 		this.records.set(registration.token, registration)

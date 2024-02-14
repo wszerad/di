@@ -28,7 +28,7 @@ describe('case di', () => {
 	let model2: Model
 
 	beforeEach(() => {
-		module = new Module([], true)
+		module = new Module([])
 		module.provide(NestedService, Lifetime.SCOPED)
 		module.provide(SubService, Lifetime.SCOPED)
 		module.provide(Service, Lifetime.TRANSIENT)

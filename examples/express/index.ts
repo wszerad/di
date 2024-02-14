@@ -1,7 +1,7 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { RequestToken, ResponseToken, User } from './services'
-import { globalModule, Scope } from '../../src'
+import { globalModule, Module, Scope } from '../../src'
 
 const router = express.Router()
 
@@ -13,7 +13,7 @@ router.get('/:path', (req: any, res: any) => {
 const app = express()
 app.use(cookieParser())
 app.use((req: any, res, next) => {
-	const module = globalModule.extend([
+	const module = new Module([
 		{
 			token: RequestToken,
 			useValue: req

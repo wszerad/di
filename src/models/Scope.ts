@@ -33,7 +33,7 @@ export class Scope {
 	}
 
 	inject<T>(token: Token<T>): T {
-		const registration = this.module.providers.get(token)
+		const registration = this.module.getProvider(token)
 
 		if (registration.lifetime === Lifetime.TRANSIENT) {
 			return this.runInScope(() => registration.value)
@@ -48,8 +48,7 @@ export class Scope {
 			return value
 		}
 
-		const scope = this.module.scope || globalScope
-		return scope.runInScope(() => registration.value)
+		return globalScope.runInScope(() => registration.value)
 	}
 
 	async dispose(): Promise<void> {

@@ -25,21 +25,22 @@ describe('case tokens', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module()
-		module.provide(Class)
-		module.provide(factory)
-		module.provide({
-			token: valueToken,
-			useValue: value
-		})
-		module.provide({
-			token: classToken,
-			useClass: Class
-		})
-		module.provide({
-			token: factoryToken,
-			useFactory: factory
-		})
+		module = new Module([
+			Class,
+			factory,
+			{
+				token: valueToken,
+				useValue: value
+			},
+			{
+				token: classToken,
+				useClass: Class
+			},
+			{
+				token: factoryToken,
+				useFactory: factory
+			}
+		])
 		scope = new Scope(module)
 	})
 

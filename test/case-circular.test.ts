@@ -25,7 +25,7 @@ describe('case circular', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module()
+		module = new Module([])
 		module.provide(Service4, Lifetime.SCOPED)
 		module.provide(Service3, Lifetime.SCOPED)
 		module.provide(Service2, Lifetime.SCOPED)

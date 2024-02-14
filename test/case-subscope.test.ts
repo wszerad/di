@@ -13,8 +13,9 @@ describe('case subscope', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module()
-		module.provide(Class)
+		module = new Module([
+			Class
+		])
 		scope = new Scope(module)
 	})
 
@@ -33,28 +34,4 @@ describe('case subscope', () => {
 		expect(value1.class).toBe(true)
 		expect(value2.class).toBe(false)
 	})
-
-	// it('should fail to register if child scope created', () => {
-	// 	new Module([
-	// 		module
-	// 	])
-	//
-	// 	expect(() => {
-	// 		module.provide({
-	// 			token: token(Class),
-	// 			useClass: ClassOverwrite
-	// 		})
-	// 	}).toThrowError('frozen')
-	// })
-	//
-	// it('should fail to register if already resolved', () => {
-	// 	scope.inject(Class)
-	//
-	// 	expect(() => {
-	// 		module.provide({
-	// 			token: token(Class),
-	// 			useClass: ClassOverwrite
-	// 		})
-	// 	}).toThrowError('frozen')
-	// })
 })
