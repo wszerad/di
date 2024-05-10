@@ -1,4 +1,4 @@
-import { inject, Lifetime, Module, Scope } from '../src/index'
+import { inject, Module, Scope } from '../src/index'
 
 class Service4 {
 	service = inject(Service0)
@@ -25,12 +25,13 @@ describe('case circular', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module([])
-		module.provide(Service4, Lifetime.SCOPED)
-		module.provide(Service3, Lifetime.SCOPED)
-		module.provide(Service2, Lifetime.SCOPED)
-		module.provide(Service1, Lifetime.SCOPED)
-		module.provide(Service0, Lifetime.SCOPED)
+		module = new Module([
+			Service0,
+			Service1,
+			Service2,
+			Service3,
+			Service4,
+		])
 		scope = new Scope(module)
 	})
 

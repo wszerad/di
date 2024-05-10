@@ -1,6 +1,5 @@
+import { bindClass } from '../src/helpers.ts'
 import { inject, Lifetime, Module, Scope } from '../src/index'
-
-class NestedService {}
 
 class SubService {
 	common = inject(CommonService)
@@ -11,14 +10,15 @@ class Service {
 	common = inject(CommonService)
 }
 
-class CommonService {
-	nested = inject(NestedService)
+class CommonService {}
+
+class OutOfScopeService {
+	common = inject(CommonService)
 }
 
 class Model {
 	service1 = inject(Service)
 	service2 = inject(Service)
-	nested = inject(NestedService)
 	common = inject(CommonService)
 }
 
@@ -28,12 +28,13 @@ describe('case di', () => {
 	let model2: Model
 
 	beforeEach(() => {
-		module = new Module([])
-		module.provide(NestedService, Lifetime.SCOPED)
-		module.provide(SubService, Lifetime.SCOPED)
-		module.provide(Service, Lifetime.TRANSIENT)
-		module.provide(CommonService, Lifetime.SINGLETON)
-		module.provide(Model, Lifetime.SCOPED)
+		module = new Module([
+			SubService,
+			Model,
+			bindClass(Service, Lifetime.TRANSIENT),
+			bindClass(CommonService, Lifetime.SINGLETON),
+			bindClass(OutOfScopeService, Lifetime.SINGLETON),
+		])
 
 		const scope1 = new Scope(module)
 		const scope2 = new Scope(module)
@@ -62,14 +63,10 @@ describe('case di', () => {
 		expect(model1.service1.subService).toBe(model1.service2.subService)
 	})
 
-	it('should isolate SINGLETONS dependencies', () => {
-		expect(model1.nested instanceof NestedService).toBe(true)
-		expect(model1.nested).not.toBe(model1.common.nested)
-	})
-
-	it('should isolate SINGLETONS in isolated modules', () => {
-		const moduleClone = new Module([module], true)
-		const model3 = moduleClone.resolve(Model)
-		expect(model1.common).not.toBe(model3.common)
+	it('should fail in injecting not global service', () => {
+		expect(() => {
+			const scope = new Scope(module)
+			scope.inject(OutOfScopeService)
+		}).toThrowError('Unknown token in global module')
 	})
 })

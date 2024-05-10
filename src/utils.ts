@@ -1,36 +1,11 @@
-import { ClassProvider, Constructor, Factory, FactoryProvider, Token, ValueProvider } from './types'
+import { UnknownTokenError } from './errors'
+import { ClassRegistration } from './registrations/ClassRegistration'
+import { FactoryRegistration } from './registrations/FactoryRegistration'
+import { Registration } from './registrations/Registration'
+import { Constructor, Factory, Lifetime, Provider, Token } from './types'
 
-// @ts-ignore
-export const isProduction = import.meta?.env?.MODE === 'production'
-
-export function isFunction(input: any) {
-	return typeof input === 'function'
-}
-
-export function isConstructor(input: any) {
-	return isFunction(input)
-		&& input.prototype
-		&& !Object.getOwnPropertyDescriptor(input, 'prototype')?.writable
-}
-
-export function isRawFactory(input: any): input is Factory<any> {
-	return isFunction(input) && !isConstructor(input)
-}
-
-export function isRawClass(input: any): input is Constructor<any> {
-	return isFunction(input) && isConstructor(input)
-}
-
-export function isValueProvider(input: any): input is ValueProvider {
-	return input.hasOwnProperty('useValue')
-}
-
-export function isClassProvider(input: any): input is ClassProvider {
-	return input.hasOwnProperty('useClass')
-}
-
-export function isFactoryProvider(input: any): input is FactoryProvider {
-	return input.hasOwnProperty('useFactory')
+export function isLifetime(value: any): value is Lifetime {
+	return Object.values(Lifetime).includes(value)
 }
 
 export function getTokenName(token: Token) {
@@ -44,4 +19,46 @@ export function getTokenName(token: Token) {
 		default:
 			return 'unnamed'
 	}
+}
+
+export function getRegistration(provider: Provider<any>, lifetime: Lifetime = Lifetime.SCOPED): Registration {
+	if (isRawFactory(provider)) {
+		return new FactoryRegistration({
+			token: provider,
+			provider,
+			lifetime
+		})
+	}
+
+	if (isRawClass(provider)) {
+		return new ClassRegistration({
+			token: provider,
+			provider,
+			lifetime
+		})
+	}
+
+	if (provider instanceof Registration) {
+		return provider
+	}
+
+	throw new UnknownTokenError(provider)
+}
+
+function isFunction(input: any) {
+	return typeof input === 'function'
+}
+
+function isConstructor(input: any) {
+	return isFunction(input)
+		&& input.prototype
+		&& !Object.getOwnPropertyDescriptor(input, 'prototype')?.writable
+}
+
+function isRawFactory(input: any): input is Factory<any> {
+	return isFunction(input) && !isConstructor(input)
+}
+
+function isRawClass(input: any): input is Constructor<any> {
+	return isFunction(input) && isConstructor(input)
 }

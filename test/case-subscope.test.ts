@@ -1,3 +1,4 @@
+import { bindClass } from '../src/helpers.ts'
 import { Scope, Module } from '../src/index'
 
 class Class {
@@ -23,10 +24,7 @@ describe('case subscope', () => {
 		const value1 = scope.inject(Class)
 		const newModule = new Module([
 			module,
-			{
-				token: Class,
-				useClass: ClassOverwrite
-			}
+			bindClass(ClassOverwrite, Class)
 		])
 
 		const newScope = new Scope(newModule)

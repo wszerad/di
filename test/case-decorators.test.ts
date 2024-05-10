@@ -1,4 +1,9 @@
-import { Module, Scope } from '../src/index'
+import { injectable, Module, Scope } from '../src/index'
+
+@injectable()
+class Model {
+	prop = true
+}
 
 describe('case decorators', () => {
 	let module: Module
@@ -6,15 +11,11 @@ describe('case decorators', () => {
 
 	beforeEach(() => {
 		module = new Module()
+		console.log(module.cloneRecords())
 		scope = new Scope(module)
 	})
 
 	it('should resolve decorated class', () => {
-		@module.injectable()
-		class Model {
-			prop = true
-		}
-
 		const model = scope.inject(Model)
 		expect(model.prop).toBe(true)
 	})
