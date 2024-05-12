@@ -1,4 +1,5 @@
-import { inject, Lifetime, onDispose, Module, Scope } from '../src/index'
+import { bindClass } from '../src/helpers.ts'
+import { inject, Lifetime, Module, onDispose, Scope } from '../src/index'
 
 const sleep = (time: number) => new Promise((res) => {
 	setTimeout(res, time)
@@ -23,9 +24,10 @@ describe('case dispose', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module()
-		module.provide(CommonService, Lifetime.SINGLETON)
-		module.provide(Model, Lifetime.SCOPED)
+		module = new Module([
+			bindClass(CommonService, Lifetime.SINGLETON),
+			Model
+		])
 		scope = new Scope(module)
 	})
 

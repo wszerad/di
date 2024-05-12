@@ -1,75 +1,62 @@
-import { warn } from '../helpers.ts'
-import { Constructor, Lifetime, Provider, Token } from '../types'
-import { Scope } from '../models/Scope'
-import { Register } from './Register'
-import { FrozenScopeError } from '../errors'
+import { UnknownGlobalTokenError, UnknownTokenError } from '../errors'
+import { Registration } from '../registrations/Registration'
+import { RawProvider, Token } from '../types'
+import { getRegistration } from '../utils'
+
+export const globalRegister: Map<Token, Registration> = new Map()
 
 export class Module {
-	private readonly register: Register
-	private locked = false
-	scope: Scope | null
+	#records: Map<Token, Registration> = new Map()
 
 	constructor(
-		registrations: (Provider<any> | Module)[] = [],
-		isolated = false
+		registrations: (RawProvider<any> | Registration | Module)[] = [],
 	) {
-		this.register = new Register(
-			registrations.map(item => {
-				if (item instanceof Module) {
-					return item.providers
-				}
-				return item
-			}),
-			isolated
-		)
-		this.scope = isolated ? new Scope(this) : null
-	}
+		const entries: [Token, Registration][] = []
 
-	private lock() {
-		this.locked = true
-	}
-
-	get providers() {
-		this.lock()
-		return this.register
-	}
-
-	resolve<T>(token: Token<T>, scope = new Scope(this)): T {
-		this.lock()
-		return scope.inject(token)
-	}
-
-	injectable(lifetime: Lifetime = Lifetime.SCOPED) {
-		return (constructor: Constructor<any>, _: any) => {
-			if (this.locked) {
-				warn(new FrozenScopeError().message)
+		registrations.reduce((acc, registration) => {
+			if (registration instanceof Module) {
+				acc.push(...registration.cloneRecords())
+				return acc
 			}
 
-			this.register.set(constructor, lifetime)
+			if (registration instanceof Registration) {
+				acc.push([registration.token, registration])
+			}
+
+			const record = getRegistration(registration)
+			acc.push([record.token, record])
+
+			return acc
+		}, entries)
+
+		this.#records = new Map(entries)
+	}
+
+	cloneRecords(): [Token, Registration][] {
+		return Array.from(this.#records.entries())
+	}
+
+	get<T>(token: Token<T>): Registration<T> {
+		const record = this.#records.get(token)
+		if(!record) {
+			throw new UnknownTokenError(token)
 		}
-	}
-
-	provide(provider: Provider<any>, lifetime = Lifetime.SCOPED) {
-		if (this.locked) {
-			warn(new FrozenScopeError().message)
-		}
-
-		this.register.set(provider, lifetime)
-		return this
-	}
-
-	extend(registrations: (Provider<any> | Module)[] = []) {
-		return new Module([
-			this,
-			...registrations
-		])
-	}
-
-	async dispose() {
-		await this.scope?.dispose()
+		return record
 	}
 }
 
-export const globalModule = new Module()
-export const injectable = globalModule.injectable.bind(globalModule)
-export const provide = globalModule.provide.bind(globalModule)
+export class GlobalModule extends Module {
+	get<T>(token: Token<T>): Registration<T> {
+		const record = globalRegister.get(token)
+		if(!record) {
+			throw new UnknownGlobalTokenError(token)
+		}
+		return record
+	}
+
+	cloneRecords(): [Token, Registration][] {
+		return Object.entries(globalRegister)
+	}
+}
+
+export const globalModule = new GlobalModule([])

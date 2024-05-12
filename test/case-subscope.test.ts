@@ -1,3 +1,4 @@
+import { bindClass } from '../src/helpers.ts'
 import { Scope, Module } from '../src/index'
 
 class Class {
@@ -13,8 +14,9 @@ describe('case subscope', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module()
-		module.provide(Class)
+		module = new Module([
+			Class
+		])
 		scope = new Scope(module)
 	})
 
@@ -22,10 +24,7 @@ describe('case subscope', () => {
 		const value1 = scope.inject(Class)
 		const newModule = new Module([
 			module,
-			{
-				token: Class,
-				useClass: ClassOverwrite
-			}
+			bindClass(ClassOverwrite, Class)
 		])
 
 		const newScope = new Scope(newModule)
@@ -33,28 +32,4 @@ describe('case subscope', () => {
 		expect(value1.class).toBe(true)
 		expect(value2.class).toBe(false)
 	})
-
-	// it('should fail to register if child scope created', () => {
-	// 	new Module([
-	// 		module
-	// 	])
-	//
-	// 	expect(() => {
-	// 		module.provide({
-	// 			token: token(Class),
-	// 			useClass: ClassOverwrite
-	// 		})
-	// 	}).toThrowError('frozen')
-	// })
-	//
-	// it('should fail to register if already resolved', () => {
-	// 	scope.inject(Class)
-	//
-	// 	expect(() => {
-	// 		module.provide({
-	// 			token: token(Class),
-	// 			useClass: ClassOverwrite
-	// 		})
-	// 	}).toThrowError('frozen')
-	// })
 })

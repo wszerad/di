@@ -1,3 +1,4 @@
+import { bindClass, bindFactory, bindValue } from '../src/helpers.ts'
 import { Scope, inject, Module, token } from '../src/index'
 
 class Class {
@@ -25,21 +26,13 @@ describe('case tokens', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module()
-		module.provide(Class)
-		module.provide(factory)
-		module.provide({
-			token: valueToken,
-			useValue: value
-		})
-		module.provide({
-			token: classToken,
-			useClass: Class
-		})
-		module.provide({
-			token: factoryToken,
-			useFactory: factory
-		})
+		module = new Module([
+			Class,
+			factory,
+			bindValue(value, valueToken),
+			bindClass(Class, classToken),
+			bindFactory(factory, factoryToken)
+		])
 		scope = new Scope(module)
 	})
 

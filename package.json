@@ -1,6 +1,6 @@
 {
   "name": "@wssz/di",
-  "version": "2.0.3",
+  "version": "3.0.0",
   "description": "",
   "type": "module",
   "exports": {
@@ -21,12 +21,12 @@
     "build": "unbuild"
   },
   "dependencies": {
-    "std-env": "^3.5.0"
+    "std-env": "^3.7.0"
   },
   "devDependencies": {
-    "vite": "^4.5.0",
-    "vitest": "^0.34.6",
-    "typescript": "^5.3.2",
+    "vite": "^5.2.11",
+    "vitest": "^1.6.0",
+    "typescript": "^5.4.5",
     "unbuild": "^2.0.0"
   },
   "keywords": ["DI", "Dependency injection", "typescript"],
