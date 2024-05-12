@@ -27,7 +27,7 @@
     "vite": "^5.2.11",
     "vitest": "^1.6.0",
     "typescript": "^5.4.5",
-    "unbuild": "^3.0.0-rc.1"
+    "unbuild": "^2.0.0"
   },
   "keywords": ["DI", "Dependency injection", "typescript"],
   "author": "Wszerad Martynowski",
