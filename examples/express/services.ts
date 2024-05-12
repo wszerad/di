@@ -1,4 +1,4 @@
-import { inject, Lifetime, injectable, onDispose, token, dispose } from '../../src'
+import { inject, Lifetime, injectable, onDispose, token } from '../../src'
 import { Request, Response } from 'express'
 
 export const RequestToken = token<Request>()

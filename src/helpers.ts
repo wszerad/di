@@ -47,6 +47,11 @@ export function dispose() {
 	return getCurrScope().dispose()
 }
 
+export function disposable(this: any, target: (...args: any[]) => any, _: any) {
+	onDispose(() => target.call(this))
+	return target
+}
+
 export function injectable(lifetime: Lifetime = Lifetime.SCOPED) {
 	return (constructor: Constructor<any>) => {
 		const record = getRegistration(constructor, lifetime)

@@ -10,14 +10,8 @@ export class Module {
 
 	constructor(
 		registrations: (RawProvider<any> | Registration | Module)[] = [],
-		pure = false
 	) {
 		const entries: [Token, Registration][] = []
-
-		if (!pure) {
-			console.log('g', ...Object.entries(globalRegister))
-			entries.push(...Object.entries(globalRegister))
-		}
 
 		registrations.reduce((acc, registration) => {
 			if (registration instanceof Module) {
