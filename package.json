@@ -48,6 +48,7 @@
 		"std-env": "^4.2.0"
 	},
 	"devDependencies": {
+		"@types/node": "^22.20.2",
 		"typescript": "^7.0.2",
 		"vite": "catalog:",
 		"vite-plus": "catalog:",

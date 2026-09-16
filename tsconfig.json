@@ -4,7 +4,7 @@
 		"lib": ["ES2022"],
 		"module": "ESNext",
 		"moduleResolution": "bundler",
-		"types": ["vite-plus/test/globals"],
+		"types": ["node", "vite-plus/test/globals"],
 
 		"useDefineForClassFields": true,
 		"resolveJsonModule": true,
