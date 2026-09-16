@@ -1,39 +1,66 @@
 {
-  "name": "@wssz/di",
-  "version": "3.0.0",
-  "description": "",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "test": "vitest run",
-    "build": "unbuild"
-  },
-  "dependencies": {
-    "std-env": "^3.7.0"
-  },
-  "devDependencies": {
-    "vite": "^5.2.11",
-    "vitest": "^1.6.0",
-    "typescript": "^5.4.5",
-    "unbuild": "^2.0.0"
-  },
-  "keywords": ["DI", "Dependency injection", "typescript"],
-  "author": "Wszerad Martynowski",
-  "repository": {
-    "type": "npm",
-    "url": "https://www.npmjs.com/package/@wssz/di"
-  },
-  "license": "MIT"
+	"name": "@wssz/di",
+	"version": "4.0.0",
+	"description": "Cross-env dependency injection with scopes, lifetimes and an optional decorator API",
+	"keywords": [
+		"DI",
+		"IoC",
+		"container",
+		"dependency injection",
+		"typescript"
+	],
+	"license": "MIT",
+	"author": "Wszerad Martynowski",
+	"repository": {
+		"type": "npm",
+		"url": "https://www.npmjs.com/package/@wssz/di"
+	},
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"sideEffects": false,
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.mts",
+				"default": "./dist/index.mjs"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		},
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "vp pack",
+		"check": "vp check",
+		"fmt": "vp fmt",
+		"lint": "vp lint",
+		"test": "vp test run",
+		"prepare": "vp config"
+	},
+	"dependencies": {
+		"std-env": "^4.2.0"
+	},
+	"devDependencies": {
+		"typescript": "^7.0.2",
+		"vite": "catalog:",
+		"vite-plus": "catalog:",
+		"vitest": "catalog:"
+	},
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "12.4.2",
+			"onFail": "download"
+		}
+	},
+	"engines": {
+		"node": "^20.19.0 || ^22.18.0 || >=24.11.0"
+	}
 }

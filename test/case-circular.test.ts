@@ -25,13 +25,7 @@ describe('case circular', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module([
-			Service0,
-			Service1,
-			Service2,
-			Service3,
-			Service4,
-		])
+		module = new Module([Service0, Service1, Service2, Service3, Service4])
 		scope = new Scope(module)
 	})
 

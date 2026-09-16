@@ -1,5 +1,4 @@
-import { bindClass, bindFactory, bindValue } from '../src/helpers.ts'
-import { Scope, inject, Module, token } from '../src/index'
+import { bindClass, bindFactory, bindValue, inject, Module, Scope, token } from '../src/index'
 
 class Class {
 	class = true
@@ -7,12 +6,12 @@ class Class {
 
 function factory() {
 	return {
-		factory: inject(Class)
+		factory: inject(Class),
 	}
 }
 
 const value = {
-	value: true
+	value: true,
 }
 
 const valueToken = token(value)
@@ -31,7 +30,7 @@ describe('case tokens', () => {
 			factory,
 			bindValue(value, valueToken),
 			bindClass(Class, classToken),
-			bindFactory(factory, factoryToken)
+			bindFactory(factory, factoryToken),
 		])
 		scope = new Scope(module)
 	})

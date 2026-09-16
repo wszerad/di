@@ -10,13 +10,12 @@ describe('case decorators', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module()
+		module = new Module([Model])
 		scope = new Scope(module)
 	})
 
-	// TODO: fix decorators in vite
 	it('should resolve decorated class', () => {
-		// const model = scope.inject(Model)
-		expect(true).toBe(true)
+		const model = scope.inject(Model)
+		expect(model.prop).toBe(true)
 	})
 })

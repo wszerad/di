@@ -8,9 +8,7 @@ export const globalRegister: Map<Token, Registration> = new Map()
 export class Module {
 	#records: Map<Token, Registration> = new Map()
 
-	constructor(
-		registrations: (RawProvider<any> | Registration | Module)[] = [],
-	) {
+	constructor(registrations: (RawProvider<any> | Registration | Module)[] = []) {
 		const entries: [Token, Registration][] = []
 
 		registrations.reduce((acc, registration) => {
@@ -38,7 +36,7 @@ export class Module {
 
 	get<T>(token: Token<T>): Registration<T> {
 		const record = this.#records.get(token)
-		if(!record) {
+		if (!record) {
 			throw new UnknownTokenError(token)
 		}
 		return record
@@ -48,7 +46,7 @@ export class Module {
 export class GlobalModule extends Module {
 	get<T>(token: Token<T>): Registration<T> {
 		const record = globalRegister.get(token)
-		if(!record) {
+		if (!record) {
 			throw new UnknownGlobalTokenError(token)
 		}
 		return record

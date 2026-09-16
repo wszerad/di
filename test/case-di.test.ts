@@ -1,5 +1,4 @@
-import { bindClass } from '../src/helpers.ts'
-import { inject, Lifetime, Module, Scope } from '../src/index'
+import { bindClass, inject, Lifetime, Module, Scope } from '../src/index'
 
 class SubService {
 	common = inject(CommonService)
@@ -67,6 +66,6 @@ describe('case di', () => {
 		expect(() => {
 			const scope = new Scope(module)
 			scope.inject(OutOfScopeService)
-		}).toThrowError('Unknown token in global module')
+		}).toThrow('Unknown token in global module')
 	})
 })

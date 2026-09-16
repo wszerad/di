@@ -1,13 +1,12 @@
 import { isProduction } from 'std-env'
 import { CircularInjectionError } from './errors'
-import { globalRegister } from './models/Module'
-import { currScopeResolve, getCurrScope } from './models/Scope'
+import { currScope, currScopeResolve } from './models/Scope'
 import { ClassRegistration } from './registrations/ClassRegistration'
 import { FactoryRegistration } from './registrations/FactoryRegistration'
 import { Registration } from './registrations/Registration'
 import { ValueRegistration } from './registrations/ValueRegistration'
-import { Constructor, Disposable, Factory, Lifetime, RawProvider, RawValue, Token } from './types'
-import { getRegistration, isLifetime } from './utils'
+import { Disposable, Factory, Lifetime, RawProvider, RawValue, Token } from './types'
+import { isLifetime } from './utils'
 
 const levels: Token[] = []
 let deep = 0
@@ -40,34 +39,30 @@ export function inject<T>(token: Token<T>): T {
 }
 
 export function onDispose(cb: Disposable) {
-	getCurrScope().onDispose(cb)
+	currScope().onDispose(cb)
 }
 
 export function dispose() {
-	return getCurrScope().dispose()
+	return currScope().dispose()
 }
 
-export function disposable(this: any, target: (...args: any[]) => any, _: any) {
-	onDispose(() => target.call(this))
-	return target
-}
-
-export function injectable(lifetime: Lifetime = Lifetime.SCOPED) {
-	return (constructor: Constructor<any>) => {
-		const record = getRegistration(constructor, lifetime)
-		globalRegister.set(record.token, record)
-	}
-}
-
-export function bindValue<T>(value: RawValue<T>, token: Token<T>, lifetime?: Lifetime): Registration {
+export function bindValue<T>(
+	value: RawValue<T>,
+	token: Token<T>,
+	lifetime?: Lifetime,
+): Registration {
 	return new ValueRegistration({
 		token,
 		provider: value,
-		lifetime
+		lifetime,
 	})
 }
 
-export function bindFactory<T>(factory: Factory<T>, token?: Token<T> | Lifetime, lifetime?: Lifetime): Registration {
+export function bindFactory<T>(
+	factory: Factory<T>,
+	token?: Token<T> | Lifetime,
+	lifetime?: Lifetime,
+): Registration {
 	if (isLifetime(token)) {
 		lifetime = token
 		token = factory
@@ -78,11 +73,15 @@ export function bindFactory<T>(factory: Factory<T>, token?: Token<T> | Lifetime,
 	return new FactoryRegistration({
 		token,
 		provider: factory,
-		lifetime
+		lifetime,
 	})
 }
 
-export function bindClass<T>(constructor: RawProvider<T>, token?: Token<T> | Lifetime, lifetime?: Lifetime): Registration {
+export function bindClass<T>(
+	constructor: RawProvider<T>,
+	token?: Token<T> | Lifetime,
+	lifetime?: Lifetime,
+): Registration {
 	if (isLifetime(token)) {
 		lifetime = token
 		token = constructor
@@ -93,6 +92,6 @@ export function bindClass<T>(constructor: RawProvider<T>, token?: Token<T> | Lif
 	return new ClassRegistration({
 		token,
 		provider: constructor,
-		lifetime
+		lifetime,
 	})
 }

@@ -2,7 +2,7 @@ export type Constructor<T> = new (...args: any[]) => T
 
 export type Factory<T> = (...args: any[]) => T
 
-export type Token<T = any> = Symbol | string | Constructor<T> | Factory<T>
+export type Token<T = any> = symbol | string | Constructor<T> | Factory<T>
 
 export type GenericProvider<T = any> = {
 	token: Token<T>
@@ -19,6 +19,5 @@ export type Disposable = () => Awaited<any>
 export enum Lifetime {
 	SCOPED = 'SCOPED',
 	TRANSIENT = 'TRANSIENT',
-	SINGLETON = 'SINGLETON'
+	SINGLETON = 'SINGLETON',
 }
-

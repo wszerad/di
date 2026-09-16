@@ -1,5 +1,4 @@
-import { bindClass } from '../src/helpers.ts'
-import { Scope, Module } from '../src/index'
+import { bindClass, Module, Scope } from '../src/index'
 
 class Class {
 	class = true
@@ -14,18 +13,13 @@ describe('case subscope', () => {
 	let scope: Scope
 
 	beforeEach(() => {
-		module = new Module([
-			Class
-		])
+		module = new Module([Class])
 		scope = new Scope(module)
 	})
 
 	it('should resolve overwritten class', () => {
 		const value1 = scope.inject(Class)
-		const newModule = new Module([
-			module,
-			bindClass(ClassOverwrite, Class)
-		])
+		const newModule = new Module([module, bindClass(ClassOverwrite, Class)])
 
 		const newScope = new Scope(newModule)
 		const value2 = newScope.inject(Class)

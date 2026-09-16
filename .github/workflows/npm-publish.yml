@@ -7,18 +7,26 @@ on:
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v5
+      - uses: voidzero-dev/setup-vp@v1.20.0
         with:
-          node-version: 18
+          node-version: '24'
+          cache: true
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
           registry-url: https://registry.npmjs.org/
           always-auth: true
           scope: wssz
-      - run: npm i
-      - run: npm test
-      - run: npm run build
-      - run: npm publish --access public
+      - run: vp install
+      - run: vp check
+      - run: vp test run
+      - run: vp pack
+      - run: pnpm publish --access public --no-git-checks
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

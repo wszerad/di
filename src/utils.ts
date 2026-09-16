@@ -21,12 +21,15 @@ export function getTokenName(token: Token) {
 	}
 }
 
-export function getRegistration(provider: Provider<any>, lifetime: Lifetime = Lifetime.SCOPED): Registration {
+export function getRegistration(
+	provider: Provider<any>,
+	lifetime: Lifetime = Lifetime.SCOPED,
+): Registration {
 	if (isRawFactory(provider)) {
 		return new FactoryRegistration({
 			token: provider,
 			provider,
-			lifetime
+			lifetime,
 		})
 	}
 
@@ -34,7 +37,7 @@ export function getRegistration(provider: Provider<any>, lifetime: Lifetime = Li
 		return new ClassRegistration({
 			token: provider,
 			provider,
-			lifetime
+			lifetime,
 		})
 	}
 
@@ -50,9 +53,11 @@ function isFunction(input: any) {
 }
 
 function isConstructor(input: any) {
-	return isFunction(input)
-		&& input.prototype
-		&& !Object.getOwnPropertyDescriptor(input, 'prototype')?.writable
+	return (
+		isFunction(input) &&
+		input.prototype &&
+		!Object.getOwnPropertyDescriptor(input, 'prototype')?.writable
+	)
 }
 
 function isRawFactory(input: any): input is Factory<any> {
